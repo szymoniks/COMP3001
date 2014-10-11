@@ -1,5 +1,8 @@
 import mysql.connector
+import sys
 from mysql.connector import errorcode
+
+sys.dont_write_bytecode = True
 
 class MySQLConnector():
 

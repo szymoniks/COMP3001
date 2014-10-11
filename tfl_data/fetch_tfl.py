@@ -1,6 +1,8 @@
 import httplib
 httplib.HTTPConnection.debuglevel = 1
 import urllib2
+import sys
+sys.dont_write_bytecode = True
 
 ## Fetch TFL data
 #

@@ -3,6 +3,8 @@ import os
 import inspect
 import sys
 
+sys.dont_write_bytecode = True
+
 path = inspect.getfile(inspect.currentframe())
 str_path = os.path.dirname(os.path.abspath(path))
 str_path = str_path.replace('tfl_data','')
