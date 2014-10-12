@@ -16,7 +16,7 @@ class MySQLConnector():
 	# @param schema Schema to connect to in MySQL server.
 	# @param port Port that MySQL server is listening for connection requests on.
 	#
-	def __init__(self, password, host=None, user=None, schema=None, port=None):
+	def __init__(self, password=None, host=None, user=None, schema=None, port=None):
 		if host is not None and user is not None:
 			if port is None:
 				try:
@@ -54,7 +54,8 @@ class MySQLConnector():
 	#
 	def mysql_connect(self, host, user, password, schema=None, port=None):
 		# Close connection before switching to another MySQL server
-		self.conn.close()
+		if self.conn is not None:
+			self.conn.close()
 		try:
 			if port is None:
 				self.conn = mysql.connector.connect(host=host, user=user, password=password, buffered=True)
