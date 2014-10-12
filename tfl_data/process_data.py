@@ -20,6 +20,9 @@ from datetime import datetime
 ## Fetch and process data in a 3 minutes interval
 #
 def process_data(database=None):
+  cursor = None
+  if database is not None:
+    cursor = database.cursor
   while True:
     # Retrieve data from TFL in XML format
     feeddata = fetch_data()
@@ -31,6 +34,8 @@ def process_data(database=None):
     parseXML(str(filename)+".xml")
 
     if database is not None:
+      # Create database if database does not exist yet
+      # Create table if table does not exist yet
       sql = """"""
       database.mysql_query(sql, arguments=None)
 
@@ -39,7 +44,11 @@ def process_data(database=None):
     sleep(60*3)
 
 if __name__ == "__main__":
-  connector = MySQLConnector(password="#!barclays"+"%"+"BIKE2014", host='tcp:yrlg5ztzzz.database.windows.ne', user='tfl-data@yrlg5ztzzz', schema='bicycle-usage', port=1433)
-  print connector
+  cnxn = MySQLConnector(password="root", host="localhost", user="root")
+  cursor = cnxn.cursor
+  cursor.execute("SELECT VERSION()")
+  row = cursor.fetchone()
+  print "server version:", row[0]
+  cursor.close
   sleep(60*3)
-  process_data(database=connector)
+  process_data(database=cnxn)
