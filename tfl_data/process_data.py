@@ -31,17 +31,30 @@ def process_data(database=None):
     filename = datetime.now()
     write_xml(str(filename)+".xml",feeddata)
 
-    parseXML(str(filename)+".xml")
+    stations = parseXML(str(filename)+".xml")
 
-    if database is not None:
-      # Create database if database does not exist yet
-      # Create table if table does not exist yet
-      sql = """"""
-      database.mysql_query(sql, arguments=None)
+    if database is not None and stations is not None:
+      # Create database if database tfl_data does not exist yet
+      database.mysql_query("""CREATE DATABASE IF NOT EXISTS tfl_data""")
+      # Use database tfl_data
+      database.mysql_query("""USE tfl_data""")
+      # Create table if table bicycle_stats does not exist yet
+      database.mysql_query("""CREATE TABLE IF NOT EXISTS bicycle_stats (id INT NOT NULL, name VARCHAR(255) NOT NULL,
+                                                                        terminalName INT NOT NULL, latitude DECIMAL(10, 8) NOT NULL,
+                                                                        longitude DECIMAL(10, 8) NOT NULL, nbBikes INT NOT NULL,
+                                                                        nbEmptyDocks INT NOT NULL, nbDocks INT NOT NULL);""")
+      for station in stations:
+        sql = """INSERT INTO bicycle_stats (id, name, terminalName,nbEmptyDocks, nbDocks)
+              VALUES ({0},"{1}",{2},{3},{4})""".format(station.getID(),station.getName(), station.getTerminalName(),
+              station.getEmptyDocks(), station.getDocks())
+        print sql
+        database.mysql_query(sql)
+      stations = []
 
     # Sleep for 3 minutes
-    # It is not expected that the bicycle station status changes every minute
+    print "Waiting..."
     sleep(60*3)
+  cursor.close
 
 if __name__ == "__main__":
   cnxn = MySQLConnector(password="root", host="localhost", user="root")
@@ -50,5 +63,5 @@ if __name__ == "__main__":
   row = cursor.fetchone()
   print "server version:", row[0]
   cursor.close
-  sleep(60*3)
   process_data(database=cnxn)
+  cnxn.mysql_disconnect()
