@@ -153,3 +153,5 @@ def parseXML(filename):
       station_info.setTerminalName(value)
     else:
       print "Tag not detected: ", tag, "#", value
+  stations.append(station_info)
+  return stations
