@@ -1,5 +1,8 @@
 #!/usr/bin/python
 import xml.etree.ElementTree as ET
+import sys
+
+sys.dont_write_bytecode = True
 
 ## Parse XML content
 #
