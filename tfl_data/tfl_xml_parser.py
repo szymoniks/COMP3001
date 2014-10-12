@@ -4,6 +4,9 @@ import sys
 
 sys.dont_write_bytecode = True
 
+##
+# Class to store information of station
+#
 class Station():
 
   def __init__(self):
