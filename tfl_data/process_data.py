@@ -40,9 +40,7 @@ def process_data(database=None):
       database.mysql_query("""USE tfl_data""")
       # Create table if table bicycle_stats does not exist yet
       database.mysql_query("""CREATE TABLE IF NOT EXISTS bicycle_stats (id INT NOT NULL, name VARCHAR(255) NOT NULL,
-                                                                        terminalName INT NOT NULL, latitude DECIMAL(10, 8) NOT NULL,
-                                                                        longitude DECIMAL(10, 8) NOT NULL, nbBikes INT NOT NULL,
-                                                                        nbEmptyDocks INT NOT NULL, nbDocks INT NOT NULL);""")
+                                                                        terminalName INT NOT NULL, nbEmptyDocks INT NOT NULL, nbDocks INT NOT NULL);""")
       for station in stations:
         sql = """INSERT INTO bicycle_stats (id, name, terminalName,nbEmptyDocks, nbDocks)
               VALUES ({0},"{1}",{2},{3},{4})""".format(station.getID(),station.getName(), station.getTerminalName(),
