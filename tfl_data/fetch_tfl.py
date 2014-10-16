@@ -31,6 +31,6 @@ def fetch_data(url='http://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livec
   request = urllib2.Request(url)
   opener = urllib2.build_opener()
   feeddata = opener.open(request).read()
-  print feeddata
-  print str(len(feeddata))
-  #return (feeddata, len(feeddata))
+  #print feeddata
+  #print str(len(feeddata))
+  return (feeddata, len(feeddata))
