@@ -2,6 +2,7 @@
 import os
 import inspect
 import sys
+import pyodbc
 
 sys.dont_write_bytecode = True
 
@@ -29,9 +30,9 @@ def process_data(database=None):
 
     # Save data in a file using date and time as name
     filename = datetime.now()
-    write_xml(str(filename)+".xml",feeddata)
+    write_xml("tfl_feed/"+str(filename)+".xml",feeddata)
 
-    stations = parseXML(str(filename)+".xml")
+    #stations = parseXML(str(filename)+".xml")
 
     if database is not None and stations is not None:
       # Create database if database tfl_data does not exist yet
@@ -51,15 +52,26 @@ def process_data(database=None):
 
     # Sleep for 3 minutes
     print "Waiting..."
-    sleep(60*3)
-  cursor.close
+    sleep(60*2)
+  if cursor is not None:
+    cursor.close
 
 if __name__ == "__main__":
-  cnxn = MySQLConnector(password="root", host="localhost", user="root")
-  cursor = cnxn.cursor
-  cursor.execute("SELECT VERSION()")
-  row = cursor.fetchone()
-  print "server version:", row[0]
-  cursor.close
-  process_data(database=cnxn)
-  cnxn.mysql_disconnect()
+  #cnxn = MySQLConnector(password="root", host="localhost", user="root")
+  #cursor = cnxn.cursor
+  #cursor.execute("SELECT VERSION()")
+  #row = cursor.fetchone()
+  #print "server version:", row[0]
+  #cursor.close
+  process_data(database=None)
+  #cnxn.mysql_disconnect()
+  #dsn = 'yrlg5ztzzz.database.windows.net'
+  #user = 'tfl'
+  #password = '#!barclays?BIKE2014'
+  #database = 'tflData'
+  #conn = pyodbc.connect('DRIVER={Free TDS};Server=tcp:sqknljq7fd.database.windows.net,1433;Database=tfl_data;User ID=tfl@sqknljq7fd;Password=!#barclays?BIKE2014;Trusted_Connection=False;Encrypt=True;Connection Timeout=30;')
+  #conn_string = 'DNS=%s;UID=%s;PWD=%s;DATABASE=%s;' % (dsn, user, password, database)
+  #conn = pyodbc.connect(conn_string)
+  #cursor = conn.cursor()
+  #cursor.execute("SELECT VERSION()")
+  #cursor.close()
