@@ -18,7 +18,7 @@ class DataFeed():
     self.stations = stations
 
   def getTimeStamp(self):
-    return self.timestamp  
+    return self.timestamp
 
   def getStations(self):
     return self.stations
@@ -33,4 +33,4 @@ def fetch_data(url='http://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livec
   feeddata = opener.open(request).read()
   print feeddata
   print str(len(feeddata))
-  return (feeddata, len(feeddata))
+  #return (feeddata, len(feeddata))
