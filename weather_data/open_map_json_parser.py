@@ -21,6 +21,7 @@ class Report():
     cod (int): ?
 
   """
+
   def __init__(self, coord, sys, weather, base, atmosphere, wind, clouds, dt, identifier, city, cod):
     self.coord = coord
     self.sys = sys
@@ -33,6 +34,39 @@ class Report():
     self.identifier = identifier
     self.city = city
     self.cod = cod
+
+  def getCoord(self):
+    return self.coord
+
+  def getSys(self):
+    return self.sys
+
+  def getWeather(self):
+    return self.weather
+
+  def getBase(self):
+    return self.base
+
+  def getAtmosphere(self):
+    return self.atmosphere
+
+  def getWind(self):
+    return self.wind
+
+  def getClouds(self):
+    return self.clouds
+
+  def getDt(self):
+    return self.dt
+
+  def getID(self):
+    return self.identifier
+
+  def getCity(self):
+    return self.city
+
+  def getCod(self):
+    return self.cod
 
 class Sys():
   """Stores information about system.
