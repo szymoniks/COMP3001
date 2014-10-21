@@ -5,9 +5,17 @@
   <title>Weather layer</title>
   <style>
   html, body, #map-canvas {
-    height: 100%;
-    margin: 0px;
-    padding: 0px
+    height: 95%;
+    margin: 2px;
+    padding: 2px;
+    background-color: black;
+
+   
+  }
+
+  #map-canvas {
+    border-radius: 15px;
+    border-style: outset;
   }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=weather"></script>
@@ -16,7 +24,9 @@
 
   <script>
 
-
+  var frameDelay = 1000;
+  var count = 0;
+  var start = false;
 
   function initialize() {
 
@@ -32,7 +42,49 @@
     };
     request.send();
 
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", "weather_history2013_14.xml", false);
+    xmlhttp.send();
+    xmlWeather = xmlhttp.responseXML;
 
+    var weatherRecords = xmlWeather.getElementsByTagName("record");
+    
+    var update = function(){
+      if(count < weatherRecords.length){
+
+        document.getElementById("date").innerHTML = weatherRecords[count].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
+        document.getElementById("temp").innerHTML = weatherRecords[count].getElementsByTagName("temp")[0].childNodes[0].nodeValue + " degrees celcius";
+        if(weatherRecords[count].getElementsByTagName("events").length != 0)
+          document.getElementById("weather").innerHTML = weatherRecords[count].getElementsByTagName("events")[0].childNodes[0].nodeValue;
+        else document.getElementById("weather").innerHTML = "Clear";
+        document.getElementById('wind').innerHTML = weatherRecords[count].getElementsByTagName("wind")[0].childNodes[0].nodeValue + " knots";
+
+        count++;
+        if(start)
+          setTimeout(update, frameDelay);
+      }
+
+    }
+    
+    document.getElementById('play').onclick = function(){
+
+      if(!start){
+        start = true;
+        update();
+        document.getElementById('play').innerHTML = "Pause";
+      }
+      else if(start){
+        start = false;
+        document.getElementById('play').innerHTML = "Play";
+      }
+    }
+
+    document.getElementById('speed').onchange = function(){
+      var speedx = document.getElementById('speed').options[document.getElementById('speed').selectedIndex].value;
+      frameDelay = 1000/speedx;
+    }
+
+    
     
 
   }
@@ -115,5 +167,20 @@
 </head>
 <body>
   <div id="map-canvas"></div>
+  <input id = "slider" type = "range" style = "position:relative; width:100%;"></input>
+  <button type = "button" id = "play" style = "position:absolute; left:44%; border-radius:10px; font-size:30px; float:left; width:200px;" >Play</button>
+  <form action = "" id = "playspeed" style = "position:absolute; left:58%; border-radius:10px; font-size:30px;">
+    <select id = "speed" style = "border-radius:10px; font-size:30px;">
+      <option value= "1.0" selected>1.0x</option>
+      <option value= "1.5">1.5x</option>
+      <option value= "2.0">2.0x</option>
+      <option value= "4.0">4.0x</option>
+    </select>
+  </form>
+  <p id = "date" style = "text-align:center; color:white; float:left; padding-left: 100px; ">Today.</p>
+  <p id = "temp" style = "text-align:center; color:white; float:left; padding-left: 10px; ">16 degrees celcius</p>
+  <p id = "wind" style = "text-align:center; color:white; float:left; padding-left: 10px; ">60knots</p>
+  <p id = "weather" style = "text-align:center; color:white; float:left; padding-left: 10px; ">Sunny</p>
+
 </body>
 </html>
