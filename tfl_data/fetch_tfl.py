@@ -33,6 +33,8 @@ def fetch_data(url='http://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livec
   opener = urllib2.build_opener()
   try:
       feeddata = opener.open(request).read()
+  except URLError, e:
+      pass
   except SocketError as e:
       if e.errno != errno.ECONNRESET:
           raise
