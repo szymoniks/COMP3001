@@ -23,7 +23,7 @@ def process_data(database=None):
     data = fetch_data(url="http://api.openweathermap.org/data/2.5/weather?q=London,uk")
     json_data = data[0]
     filename = datetime.now()
-    write_json(str(filename)+".txt", json_data)
+    write_json("weather_data/"+str(filename)+".txt", json_data)
 
     # Load JSON from file
     report = json_parser(str(filename)+".txt")
