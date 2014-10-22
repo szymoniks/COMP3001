@@ -26,7 +26,7 @@ def process_data(database=None):
     write_json("weather_data/"+str(filename)+".txt", json_data)
 
     # Load JSON from file
-    report = json_parser(str(filename)+".txt")
+    #report = json_parser("weather_data/"+str(filename)+".txt")
     print "Waiting"
     sleep(60*2)
 
