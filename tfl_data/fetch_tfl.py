@@ -5,6 +5,7 @@ import sys
 sys.dont_write_bytecode = True
 
 from tfl_xml_parser import *
+from socket import error as SocketError
 
 class DataFeed():
   def __init__(self):
@@ -30,7 +31,13 @@ class DataFeed():
 def fetch_data(url='http://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livecyclehireupdates.xml'):
   request = urllib2.Request(url)
   opener = urllib2.build_opener()
-  feeddata = opener.open(request).read()
-  #print feeddata
-  #print str(len(feeddata))
+  try:
+      feeddata = opener.open(request).read()
+  except URLError, e:
+      pass
+  except SocketError as e:
+      if e.errno != errno.ECONNRESET:
+          raise
+      pass
+
   return (feeddata, len(feeddata))

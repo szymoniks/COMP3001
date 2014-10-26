@@ -27,10 +27,12 @@ def process_data(database=None):
   while True:
     # Retrieve data from TFL in XML format
     feeddata = fetch_data()
-
-    # Save data in a file using date and time as name
-    filename = datetime.now()
-    write_xml("tfl_feed/"+str(filename)+".xml",feeddata)
+    if feeddata[0] is None:
+        continue
+    else:
+        # Save data in a file using date and time as name
+        filename = datetime.now()
+        write_xml("tfl_feed/"+str(filename)+".xml",feeddata)
 
     #stations = parseXML(str(filename)+".xml")
 
