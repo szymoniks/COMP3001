@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Weather layer</title>
+  <style>
+  html, body, #map-canvas {
+    height: 95%;
+    margin: 2px;
+    padding: 2px;
+    background-color: black;
+
+   
+  }
+
+  #map-canvas {
+    border-radius: 15px;
+    border-style: outset;
+  }
+  </style>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=weather"></script>
+  <script src="http://gmaps-utility-library.googlecode.com/svn/trunk/markermanager/release/src/markermanager.js"></script>
+
+
+  <script>
+
+  var frameDelay = 1000;
+  var count = 0;
+  var start = false;
+
+  function initialize() {
+
+    xmlUrl = "http://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livecyclehireupdates.xml";
+
+
+
+
+    var request = new XMLHttpRequest();
+    request.open('GET', xmlUrl, true);
+    request.onload = function() {
+      loadData(request.responseXML);
+    };
+    request.send();
+
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", "weather_history2013_14.xml", false);
+    xmlhttp.send();
+    xmlWeather = xmlhttp.responseXML;
+
+    var weatherRecords = xmlWeather.getElementsByTagName("record");
+    
+    var update = function(){
+      if(count < weatherRecords.length){
+
+        document.getElementById("date").innerHTML = weatherRecords[count].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
+        document.getElementById("temp").innerHTML = weatherRecords[count].getElementsByTagName("temp")[0].childNodes[0].nodeValue + " degrees celcius";
+        if(weatherRecords[count].getElementsByTagName("events").length != 0)
+          document.getElementById("weather").innerHTML = weatherRecords[count].getElementsByTagName("events")[0].childNodes[0].nodeValue;
+        else document.getElementById("weather").innerHTML = "Clear";
+        document.getElementById('wind').innerHTML = weatherRecords[count].getElementsByTagName("wind")[0].childNodes[0].nodeValue + " knots";
+        document.getElementById('slider').value = count;
+
+        count++;
+        if(start)
+          setTimeout(update, frameDelay);
+      }
+
+    }
+    
+    document.getElementById('play').onclick = function(){
+
+      if(!start){
+        start = true;
+        update();
+        document.getElementById('play').innerHTML = "Pause";
+      }
+      else if(start){
+        start = false;
+        document.getElementById('play').innerHTML = "Play";
+      }
+    }
+
+    document.getElementById('speed').onchange = function(){
+      var speedx = document.getElementById('speed').options[document.getElementById('speed').selectedIndex].value;
+      frameDelay = 1000/speedx;
+    }
+
+    document.getElementById('slider').value = 0;
+    document.getElementById('slider').max = weatherRecords.length;
+    
+
+  }
+
+
+  function loadData(data)
+  {
+  
+
+     var mapOptions = {
+      zoom: 12,
+      center: new google.maps.LatLng(51.518175,-0.128721)
+    };
+    
+    var map = new google.maps.Map(document.getElementById('map-canvas'),
+      mapOptions);
+
+
+     var weatherLayer = new google.maps.weather.WeatherLayer({
+      temperatureUnits: google.maps.weather.TemperatureUnit.CELCIUS
+    });
+    weatherLayer.setMap(map);
+
+    var cloudLayer = new google.maps.weather.CloudLayer();
+    cloudLayer.setMap(map);
+
+    var stations = data.documentElement.getElementsByTagName("station");
+
+    for(i=0;i<stations.length;i++)
+    {
+       var latLng = new google.maps.LatLng(stations[i].getElementsByTagName("lat")[0].firstChild.data,stations[i].getElementsByTagName("long")[0].firstChild.data);
+
+        var nbBikes = stations[i].getElementsByTagName("nbBikes")[0].firstChild.data;
+
+        var name = stations[i].getElementsByTagName("name")[0].firstChild.data;
+          
+         //createMarker(latLng,map);
+         createCircle(latLng,nbBikes,name,map);
+    }
+  }
+
+    function createMarker(latLng,map)
+    {
+            var marker = new google.maps.Marker({
+            position: latLng,
+            map: map});
+  }
+
+    function createCircle(latLng,nbBikes,name,map)
+    {
+      var stationOptions = {
+      strokeColor: '#FF0000',
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+      fillColor: '#FF0000',
+      fillOpacity: 0.35,
+      map: map,
+      center: latLng,
+      radius: nbBikes*1
+    };
+
+
+    var html = "<div class='infowindow'><b>" + name + "</b> <br/>" + "Number of Bikes: " + nbBikes +'<br/></div>';
+
+    var infowindow = new google.maps.InfoWindow({content: html});
+
+    var circle = new google.maps.Circle(stationOptions);
+
+    google.maps.event.addListener(circle,"click",function()
+    {
+      infowindow.setPosition(latLng);
+      infowindow.open(map);
+    });
+    }
+
+
+  google.maps.event.addDomListener(window, 'load', initialize);
+
+  </script>
+</head>
+<body>
+  <div id="map-canvas"></div>
+  <input id = "slider" type = "range" style = "position:relative; width:100%;"></input>
+  <button type = "button" id = "play" style = "position:absolute; left:44%; border-radius:10px; font-size:30px; float:left; width:200px;" >Play</button>
+  <form action = "" id = "playspeed" style = "position:absolute; left:58%; border-radius:10px; font-size:30px;">
+    <select id = "speed" style = "border-radius:10px; font-size:30px;">
+      <option value= "1.0" selected>1.0x</option>
+      <option value= "1.5">1.5x</option>
+      <option value= "2.0">2.0x</option>
+      <option value= "4.0">4.0x</option>
+    </select>
+  </form>
+  <p id = "date" style = "text-align:center; color:white; float:left; padding-left: 100px; ">Today.</p>
+  <p id = "temp" style = "text-align:center; color:white; float:left; padding-left: 10px; ">16 degrees celcius</p>
+  <p id = "wind" style = "text-align:center; color:white; float:left; padding-left: 10px; ">60knots</p>
+  <p id = "weather" style = "text-align:center; color:white; float:left; padding-left: 10px; ">Sunny</p>
+
+</body>
+</html>
