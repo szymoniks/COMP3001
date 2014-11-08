@@ -34,59 +34,86 @@
 
 
 
-
+    //create a xmlhttprequest for live cycle updates xml
     var request = new XMLHttpRequest();
     request.open('GET', xmlUrl, true);
     request.onload = function() {
       loadData(request.responseXML);
     };
+    //send the request
     request.send();
 
+    //create request for weather history stored in same server space
     xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", "weather_history2013_14.xml", false);
+    //send request
     xmlhttp.send();
+    //extract the response in a xmlWeather
     xmlWeather = xmlhttp.responseXML;
 
+    //create list of individual weather records by day
     var weatherRecords = xmlWeather.getElementsByTagName("record");
     
+    //update function which plays through the weather history day by day, shown bottom of screen
     var update = function(){
+      //loop through the length of the list of weather records
       if(count < weatherRecords.length){
-
+        //for each iteration, change the words displayed bottom of screen to that of the record
         document.getElementById("date").innerHTML = weatherRecords[count].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
         document.getElementById("temp").innerHTML = weatherRecords[count].getElementsByTagName("temp")[0].childNodes[0].nodeValue + " degrees celcius";
+        //sometimes event tag may be nil where weather is clear abit of hardcoding is required
         if(weatherRecords[count].getElementsByTagName("events").length != 0)
           document.getElementById("weather").innerHTML = weatherRecords[count].getElementsByTagName("events")[0].childNodes[0].nodeValue;
         else document.getElementById("weather").innerHTML = "Clear";
         document.getElementById('wind').innerHTML = weatherRecords[count].getElementsByTagName("wind")[0].childNodes[0].nodeValue + " knots";
+        //move the slider
         document.getElementById('slider').value = count;
-
+        //increment counter
         count++;
+        //if start boolean is true, meaning that user has pressed play, 
+        //set the timeout before the next update, the timeout being the speed at which the user desires
         if(start)
           setTimeout(update, frameDelay);
       }
 
     }
     
+    //what happens when user presses play
     document.getElementById('play').onclick = function(){
-
+      //if not already playing
       if(!start){
+        //change state to playing
         start = true;
+        //start playing through weather histry
         update();
+        //change button to pause button
         document.getElementById('play').innerHTML = "Pause";
       }
+      //if already playing
       else if(start){
+        //change state to not playing
         start = false;
+        //change button to play button
         document.getElementById('play').innerHTML = "Play";
       }
     }
 
+    //what happens when user selects the speed at which he wants the histry to play by
     document.getElementById('speed').onchange = function(){
+      //get the value
       var speedx = document.getElementById('speed').options[document.getElementById('speed').selectedIndex].value;
+      //set the frameDelay
       frameDelay = 1000/speedx;
     }
 
+    //initialize the slider
     document.getElementById('slider').value = 0;
     document.getElementById('slider').max = weatherRecords.length;
+    //allow control of playback by moving slider
+    document.getElementById('slider').onchange = function(){
+      count = document.getElementById('slider').value
+    }
+
     
 
   }
