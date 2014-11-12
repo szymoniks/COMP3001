@@ -13,16 +13,43 @@ from mysql.connector import errorcode
 path = inspect.getfile(inspect.currentframe())
 str_path = os.path.dirname(os.path.abspath(path))
 str_path = str_path.replace('data_import','')
-sys.path.append(str_path + 'database/')
 
-from weather_data import *
+sys.path.append(str_path + 'database/')
+sys.path.append(str_path + 'weather_data/')
+
+from open_map_json_parser import *
 
 sys.dont_write_bytecode = True
 
 # Main table in database
 main_table = "weather_systems"
+# Main table schema
+main_table_schema = """(sys_id INT NOT NULL,
+                        sys_type CHAR(255) NOT NULL,
+                        sys_country CHAR(255), PRIMARY KEY(sys_id))"""
+
 # Sub table in database
 sub_table = "weather_systems_records"
+# Sub table schema
+sub_table_schema = """(id INT NOT NULL auto_increment,
+                        sys_id CHAR(255) NOT NULL,
+                        sys_sunrise INT NOT NULL,
+                        sys_sunset INT NOT NULL,
+                        weather_id INT NOT NULL,
+                        weather_main CHAR(255),
+                        weather_descrip CHAR(255),
+                        atmosphere_tmp DOUBLE PRECISION,
+                        atmosphere_pressure DOUBLE PRECISION,
+                        atmosphere_humid DOUBLE PRECISION,
+                        atmosphere_min_temp DOUBLE PRECISION,
+                        atmosphere_max_temp DOUBLE PRECISION,
+                        wind_speed DOUBLE PRECISION,
+                        wind_deg DOUBLE PRECISION,
+                        clouds CHAR(255),
+                        dt BIGINT,
+                        identifier INT,
+                        city CHAR(255),
+                        cod INT, PRIMARY KEY(id));"""
 
 def getFiles(folder):
     files = []
@@ -36,18 +63,28 @@ def getFiles(folder):
 # Prepare database
 #
 def init(db, u, pwd, h="localhost"):
-    database = mysql.connector.connect(host=h, user=u, password=pwd)
+    try:
+        database = mysql.connector.connect(database=db, host=h, user=u, password=pwd)
+    except:
+        print Exception("DATABASE CONNECTION ERROR")
+        raise
+
     cursor = database.cursor()
 
     if cursor is not None:
         try:
-            cursor.exeucte("""CREATE TABLE IF NOT EXISTS {0}""".format(main_table))
+            cursor.execute("""CREATE DATABASE IF NOT EXISTS {0}""".format(db))
+        except:
+            print Exception("CREATE DATABASE ERROR")
+            raise
+        try:
+            cursor.execute("""CREATE TABLE IF NOT EXISTS {0} {1}""".format(main_table, main_table_schema))
         except:
             print Exception("MAIN TABLE CHECK ERROR")
             raise
 
         try:
-            cursor.execute("""CREATE TABLE IF NOT EXISTS {0}""".format(sub_table))
+            cursor.execute("""CREATE TABLE IF NOT EXISTS {0} {1}""".format(sub_table, sub_table_schema))
         except:
             print Exception("SUB TABLE CHECK ERROR")
             raise
@@ -77,7 +114,7 @@ def data_import(database, table, folder, data_type="json"):
     for x in range(0, len(files)):
         print files[x]
 
-    if data_type is "json" || data_type is "xml":
+    if data_type is "json" or data_type is "xml":
         for x in range(0, len(files)):
             # files[x] - time when the file was saved
             # read file
@@ -139,9 +176,10 @@ def insert_weather_json(database, data_json, table, time=None):
     if cursor is not None:
         try:
             # Insert system information
-            cursor.execute("""INSERT INTO {0} VALUES('{1}','{2}','{3}')""".format(main_table, sys_id, sys_type, sys_country)
+            cursor.execute("""INSERT INTO {0} VALUES('{1}','{2}','{3}')""".format(main_table, sys_id, sys_type, sys_country))
         except:
             print Exception("MAIN TABLE INSERT ERROR")
+
         try:
             # Insert system record
             cursor.execute("""INSERT INTO {0} VALUES('{1}','{2}','{3}')""".format(sub_table, sys_id, ))
@@ -154,7 +192,8 @@ if __name__ == "__main__":
     database = init("tfl_data", "root", "root", h="localhost")
 
     if database is not None:
-        data_import(database, "folder_name")
+        print "Connected to database"
+        #data_import(database, "folder_name")
 
     if database is not None:
         database.close()
