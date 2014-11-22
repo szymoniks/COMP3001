@@ -1,6 +1,5 @@
 from enum import Enum
 
-
 class TripStatus(Enum):
     INACTIVE = 1
     ACTIVE = 2
@@ -17,3 +16,9 @@ class Trip:
         self.start_id = start_id
         self.end_id = end_id
         self.status = TripStatus.INACTIVE
+
+    def start_minute_of_day(self):
+        return self.start_time.time().minute
+
+    def end_minute_of_day(self):
+        return self.end_time.time().minute
