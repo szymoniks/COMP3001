@@ -15,25 +15,22 @@ class Writer:
 	def add_weather_update(self, time_stamp, weather):
 		weather_update = self._create_record(time_stamp)
 
-		weather_update.attrib("type", "station")
+		weather_update.attrib("type", "weather")
 
 		weather.to_xml(weather_update)
 
-		ET.SubElement(station_update, "date").text = self.date
-		ET.SubElement(station_update, "max_tempc").text = self.max_tempc
-		ET.SubElement(station_update, "mean_tempc").text = self.mean_tempc
-		ET.SubElement(station_update, "min_tempc").text = self.min_tempc
-		ET.SubElement(station_update, "events").text = self.events
+	def dump_log_to_XML(self, fileName):
+		dump_content = ET.dump(self.root)
 
-	def _dump_stations_to_XML(self, fileName):
+		dump_file = open(fileName, "w")
+		dump_file.write(dump_content)
+		dump_file.close()
 
-        stations_file = open(fileName, "w")
-
-    def _create_record(self, time_stamp):
-    	record = ET.SubElement(self.root, "record")
+	def _create_record(self, time_stamp):
+		record = ET.SubElement(self.root, "record")
 		record.attrib("id", self.record_id)
 		record.attrib("time", time_stamp)
-		
+
 		self.record_id += 1
 
 		return record
