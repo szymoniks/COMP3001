@@ -24,22 +24,31 @@ def load_trips(file):
             end_date_array = end_date.split(' ')
             # end date
             e_date = end_date_array[0]
+            e_date_array = e_date.split('/')
+            e_day = e_date_array[0]
+            e_mon = e_date_array[1]
+            e_year = e_date_array[2]
             # end time
             e_time = end_date_array[1]
             e_time_array = e_time.split(':')
             # Time object
-            end_time = datetime.time(int(e_time_array[0]), int(e_time_array[1]))
+            end_time = datetime.datetime(int(e_year), int(e_mon), int(e_day), int(e_time_array[0]), int(e_time_array[1]))
 
             start_date = t[6]
             # Split date and time
             start_date_array = start_date.split(' ')
             # start date
             s_date = start_date_array[0]
+            s_date_array = s_date.split('/')
+            s_day = s_date_array[0]
+            s_mon = s_date_array[1]
+            s_year = s_date_array[2]
             # start time
             s_time = start_date_array[1]
             s_time_array = s_time.split(':')
+
             # Time object
-            start_time = datetime.time(int(s_time_array[0]), int(s_time_array[1]))
+            start_time = datetime.datetime(int(e_year), int(e_mon), int(e_day), int(s_time_array[0]), int(s_time_array[1]))
 
             end_id = t[4]
             start_id = t[7]
