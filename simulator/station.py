@@ -1,4 +1,5 @@
 from math import sin, cos, sqrt, atan2, radians
+import ElementTree as ET
 
 
 class Station:
@@ -41,3 +42,7 @@ class Station:
             return True
         else:
             return False
+
+    def to_xml(self, parent_node):
+        ET.SubElement(station_update, "id").text = self.id
+        ET.SubElement(station_update, "bikes").text = self.bikes

@@ -5,28 +5,25 @@ class Writer:
 		self.root = ET.Element('data-set')
 		self.record_id = 1
 
-	def add_station_update(self, time_stamp, station_id, bikes_number):
+	def add_station_update(self, time_stamp, station):
 		station_update = self._create_record(time_stamp)
 
 		station_update.attrib("type", "station")
 		
-		station_id_node = ET.SubElement(station_update, "station_id")
-		station_id_node.text = station_id
-
-		bikes_number_node = ET.SubElement(station_update, "bikes_number")
-		bikes_number_node.text = bikes_number
+		station.to_xml(station_update)
 
 	def add_weather_update(self, time_stamp, weather):
 		weather_update = self._create_record(time_stamp)
 
 		weather_update.attrib("type", "station")
-		
-		# TODO
-		# station_id_node = ET.SubElement(station_update, "station_id")
-		# station_id_node.text = station_id
 
-		# bikes_number_node = ET.SubElement(station_update, "bikes_number")
-		# bikes_number_node.text = bikes_number
+		weather.to_xml(weather_update)
+
+		ET.SubElement(station_update, "date").text = self.date
+		ET.SubElement(station_update, "max_tempc").text = self.max_tempc
+		ET.SubElement(station_update, "mean_tempc").text = self.mean_tempc
+		ET.SubElement(station_update, "min_tempc").text = self.min_tempc
+		ET.SubElement(station_update, "events").text = self.events
 
 	def _dump_stations_to_XML(self, fileName):
 
