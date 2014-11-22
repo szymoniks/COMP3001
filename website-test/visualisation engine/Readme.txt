@@ -10,3 +10,13 @@ Status of Work on Python Data Analyser
 	a. Calculate for all dates
 	b. Format and produce xml file
 	c. Automate and work on succession of csv files
+
+Update 1:
+
+1.	Calculation for all dates in csv file available.
+2.	Format and produce xml file available.
+
+3.	Work pending approval:
+	a.	automate and work on succession of csv files (necessary?)
+
+note: included in repository is an example of generated xml file: dailydata.xml(for hierarchy reference) dailydata.xml is generated from hugesample.csv, which contains over a million lines.
