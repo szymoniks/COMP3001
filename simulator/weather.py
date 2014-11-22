@@ -1,3 +1,5 @@
+import ElementTree as ET
+
 class Weather:
     
     def __init__(self, date,max_tempc,mean_tempc,min_tempc,max_humid,mean_humid,min_humid,max_visibility,mean_visibility,min_visibility,max_wind_speed,mean_wind_speed,max_gust_speed,precipitation,cloudcover,events,wind_degree):
@@ -32,3 +34,12 @@ class Weather:
             self.is_fog = True
             self.is_rain = True
             self.is_thunderstorm = True
+
+
+
+    def to_xml(self, parent_node):
+        ET.SubElement(parent_node, "date").text = self.date
+        ET.SubElement(parent_node, "max_tempc").text = self.max_tempc
+        ET.SubElement(parent_node, "mean_tempc").text = self.mean_tempc
+        ET.SubElement(parent_node, "min_tempc").text = self.min_tempc
+        ET.SubElement(parent_node, "events").text = self.events

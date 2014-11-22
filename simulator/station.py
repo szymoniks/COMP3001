@@ -44,5 +44,5 @@ class Station:
             return False
 
     def to_xml(self, parent_node):
-        ET.SubElement(station_update, "id").text = self.id
-        ET.SubElement(station_update, "bikes").text = self.bikes
+        ET.SubElement(parent_node, "id").text = self.id
+        ET.SubElement(parent_node, "bikes").text = self.bikes
