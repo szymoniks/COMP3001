@@ -1,5 +1,5 @@
 from math import sin, cos, sqrt, atan2, radians
-import ElementTree as ET
+import xml.etree.ElementTree as ET
 
 
 class Station:
