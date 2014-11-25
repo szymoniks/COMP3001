@@ -74,7 +74,7 @@ def load_from_folder(folder):
     files = [ f for f in listdir(folder) if isfile(join(folder,f)) ]
     trips = []
     for file in files:
-        trips.append(load_trips(files))
+        trips.append(load_trips(file))
 
     return trips
 
