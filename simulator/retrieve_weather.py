@@ -10,8 +10,8 @@ weather_arr = []
 firstLine = False
 
 #Get weather data
-def loadWeatherData(filepath)
-    with open('data/whistory2013-14.csv','rb') as csvfile:
+def load_weather(fileName):
+    with open(fileName,'rb') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in csvfile:
             if firstLine == False:
