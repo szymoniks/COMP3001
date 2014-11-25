@@ -3,6 +3,8 @@
 import csv
 import datetime
 from trip import Trip
+from os import listdir
+from os.path import isfile, join
 
 def load_trips(file):
     """
@@ -64,6 +66,17 @@ def display_helper(trip):
 def display_trip(trips):
     for trip in trips:
         display_helper(trip)
+
+def load_from_folder(folder):
+    """
+    Load all trips from folder.
+    """
+    files = [ f for f in listdir(folder) if isfile(join(folder,f)) ]
+    trips = []
+    for file in files:
+        trips.append(load_trips(files))
+
+    return trips
 
 # if __name__ == '__main__':
 #     file = "/Users/minh-long/Downloads/Trips in past year/1. Journey Data Extract 05Jan14-02Feb14.csv"
