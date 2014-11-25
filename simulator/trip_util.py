@@ -65,9 +65,9 @@ def display_trip(trips):
     for trip in trips:
         display_helper(trip)
 
-if __name__ == '__main__':
-    file = "/Users/minh-long/Downloads/Trips in past year/1. Journey Data Extract 05Jan14-02Feb14.csv"
-    # Load trips from file
-    trips = load_trips(file)
-    # Show array of trips
-    display_trip(trips)
+# if __name__ == '__main__':
+#     file = "/Users/minh-long/Downloads/Trips in past year/1. Journey Data Extract 05Jan14-02Feb14.csv"
+#     # Load trips from file
+#     trips = load_trips(file)
+#     # Show array of trips
+#     display_trip(trips)
