@@ -45,7 +45,7 @@ def display_stations(stations):
 		display_station(station)
 
 
-if __name__ == '__main__':
-	file = "/Users/minh-long/Downloads/station.xml"
-	stations = load_stations(file)
-	display_stations(stations)
+# if __name__ == '__main__':
+# 	file = "/Users/minh-long/Downloads/station.xml"
+# 	stations = load_stations(file)
+# 	display_stations(stations)
