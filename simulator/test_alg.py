@@ -1,6 +1,6 @@
 class TestAlg:
 
-    def __init__():
+    def __init__(self):
 		pass
 
 	# Simple algorithm that updates all stations to be full all the time

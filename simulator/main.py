@@ -1,27 +1,33 @@
 import trip_util
 import load_station
 import retrieve_weather
-import inspect
-import os
-import sys
+# import inspect
+# import os
+# import sys
 from simulator import Simulator
 
-path = inspect.getfile(inspect.currentframe())
-str_path = os.path.dirname(os.path.abspath(path))
+# path = inspect.getfile(inspect.currentframe())
+# str_path = os.path.dirname(os.path.abspath(path))
+# print "SYSTEM PATH:", str_path
+# str_path = str_path + '/algorithms/'
+# sys.path.append(str_path)
+# print "SYSTEM PATH:", str_path
+# import test
 
-sys.path.append(str_path + 'algorithms/')
-
-import test
+import test_alg
 
 def main():
 	trips = []
-	trips = trip_util.load_trips("data/trips")
+	print "Loading trips..."
+	trips = trip_util.load_trips("data/trips/sampleTrips.csv")
+	print "Loading stations..."
 	stations = load_station.load_stations("data/stations.xml")
-	weather = retrieve_weather.load_wather("data/whistory2013-14.csv")
+	print "Loading weather..."
+	weather = retrieve_weather.load_weather("data/whistory2013-14.csv")
 
 	simulator = Simulator(trips, stations)
 
-	testAlg = test.TestAlg()
+	testAlg = test_alg.TestAlg()
 
 	simulator.run(testAlg, 3)
 
