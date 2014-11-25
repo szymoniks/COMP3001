@@ -24,6 +24,6 @@ def load_weather(fileName):
 
 
 #main function
-filepath = "data/whistory2013-14.csv"
-loadWeatherData(filepath)
+# filepath = "data/whistory2013-14.csv"
+# loadWeatherData(filepath)
 
