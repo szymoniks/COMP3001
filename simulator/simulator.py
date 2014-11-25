@@ -62,6 +62,7 @@ class Simulator:
             self.stations_index[station.id] = station
 
     def _within_time_step_future(self, time):
+        print time, self.time, type(time), type(self.time)
         return time > self.time and abs(time - self.time) <= self.time_step
 
     def _within_time_step_past(self, time):
