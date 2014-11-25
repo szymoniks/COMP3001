@@ -2,15 +2,15 @@ import csv
 import datetime
 from weather import Weather
 
-date = "BST"
-mean_temp = "Mean TemperatureC"
-mean_visibility = "Mean VisibilityKm"
-event = "Events"
-weather_arr = []
-firstLine = False
-
 #Get weather data
 def load_weather(fileName):
+    date = "BST"
+    mean_temp = "Mean TemperatureC"
+    mean_visibility = "Mean VisibilityKm"
+    event = "Events"
+    weather_arr = []
+    firstLine = False
+
     with open(fileName,'rb') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in csvfile:
