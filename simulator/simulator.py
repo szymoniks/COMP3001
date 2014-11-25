@@ -52,6 +52,10 @@ class Simulator:
         return filter(lambda trip: trip.status == TripStatus.ACTIVE,
                       self.trips)
 
+    def get_wather(self):
+        # TODO
+        pass
+
     def _create_station_index(self, stations):
         self.stations_index = {}
         for station in stations:
