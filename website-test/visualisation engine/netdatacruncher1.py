@@ -169,7 +169,7 @@ def writeXml(earliest, latest, mainreader, namelist):
 
 	print "wrote to: dailydata.xml"
 
-	with open("C:/Python27/Scripts/dailydata.xml", "w") as f:
+	with open("dailydata.xml", "w") as f:
 		f.write(tree)
 
 #function to update relation between station ID and station Name
@@ -191,7 +191,7 @@ def updateNameList(reader, namelist):
 
 
 #main function
-with open('C:/Python27/Scripts/hugesample.csv',
+with open('bigsample.csv',
 	'rb') as csvfile:
 	reader = list(csv.DictReader(csvfile))
 
