@@ -1,25 +1,56 @@
 from trip import TripStatus
-
+from datetime import timedelta, datetime
+from operator import attrgetter
 
 class Simulator:
 
     def __init__(self, trips, stations):
-        self.trips = sorted(trips, key=lambda trip: trip.start_time)
+        if len(trips) < 1:
+            raise NameError("No trips!")
+
+        if len(stations) < 1:
+            raise NameError("No stations!")
+
+        # Now sorting is useless
+        # self.trips = sorted(trips, key=lambda trip: trip.start_time)
+        self.trips = trips
         self.stations = stations
         self._create_station_index(self.stations)
-        self.time = 0  # Minutes of the simulation day
+        # self.time = 0  # Minutes of the simulation day
+        # self.current_time = self.trips[0].start_time
+        self.current_time = min(self.trips, key=attrgetter('start_time')).start_time
+        self.sim_end_time = max(self.trips, key=attrgetter('end_time')).end_time
+        print self.current_time, self.sim_end_time
 
     def run(self, algorithm, time_step=1):
-        self.time_step = time_step
-        for i in xrange(0, 60*24, time_step):
-            self.time = i
+        # self.time_step = datetime(datetime.MINYEAR, 1, 1, 0, time_step)
+        self.time_step = timedelta(minutes = time_step)
+
+        while self.current_time - self.time_step < self.sim_end_time:
+            
             starting_trips = self.trips_starting_now()
             ending_trips = self.trips_ending_now()
+
             for trip in ending_trips:
                 self._end_trip(trip)
             for trip in starting_trips:
                 self._start_trip(trip)
+            
             algorithm.update(self)
+
+            print self.current_time
+
+            self.current_time = self.current_time + self.time_step
+
+        # for i in xrange(0, 60*24, time_step):
+        #     self.time = i
+        #     starting_trips = self.trips_starting_now()
+        #     ending_trips = self.trips_ending_now()
+        #     for trip in ending_trips:
+        #         self._end_trip(trip)
+        #     for trip in starting_trips:
+        #         self._start_trip(trip)
+        #     algorithm.update(self)
 
     def get_station(self, station_id):
         return self.stations_index[station_id]
@@ -41,11 +72,13 @@ class Simulator:
         return self.get_station(station_id).remove_bikes(count)
 
     def trips_starting_now(self):
-        f = lambda t: self._within_time_step_future(t.start_minute_of_day)
+        # f = lambda t: self._within_time_step_future(t.start_minute_of_day)
+        f = lambda t: self._within_time_step_future(t.start_time)
         return filter(f, self.trips)
 
     def trips_ending_now(self):
-        f = lambda t: self._within_time_step_past(t.end_minute_of_day)
+        # f = lambda t: self._within_time_step_past(t.end_minute_of_day)
+        f = lambda t: self._within_time_step_past(t.end_time)
         return filter(f, self.trips)
 
     def active_trips(self):
@@ -62,21 +95,35 @@ class Simulator:
             self.stations_index[station.id] = station
 
     def _within_time_step_future(self, time):
-        print time, self.time, type(time), type(self.time)
-        return time > self.time and abs(time - self.time) <= self.time_step
+        # print time, self.current_time, type(time), type(self.current_time)
+        return time > self.current_time and self.current_time + self.time_step >= time
 
     def _within_time_step_past(self, time):
-        return time < self.time and abs(time - self.time) <= self.time_step
+        return time < self.current_time and self.current_time - self.time_step <= time
 
     # TODO: Handle semi-successful trips
     def _end_trip(self, trip):
-        if self.get_station(trip.end_id).add_bikes(1):
-            trip.status = TripStatus.SUCCESSFUL
+        if trip.end_id in self.stations_index.keys():
+
+            if self.get_station(trip.end_id).add_bikes(1):
+                trip.status = TripStatus.SUCCESSFUL
+            else:
+                trip.status = TripStatus.FAILED
+
         else:
-            trip.status = TripStatus.FAILED
+            self._raise_warning("Station id " + trip.end_id + " does not exist!")
 
     def _start_trip(self, trip):
-        if self.get_station(trip.start_id).remove_bikes(1):
-            trip.status = TripStatus.ACTIVE
+        if trip.start_id in self.stations_index.keys():
+
+            if self.get_station(trip.start_id).remove_bikes(1):
+                trip.status = TripStatus.ACTIVE
+            else:
+                trip.status = TripStatus.FAILED
+
         else:
-            trip.status = TripStatus.FAILED
+            self._raise_warning("Station id " + trip.start_id + " does not exist!")
+
+    def _raise_warning(self, message):
+        # print("> Warning: " + message)
+        pass

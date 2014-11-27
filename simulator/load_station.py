@@ -24,21 +24,21 @@ def load_stations(file):
 		#if staion.hasAttribute("station"):
 		#   print "Station: %s" % movie.getAttribute("station")
 
-		id = station.getElementsByTagName('id')[0].childNodes[0].data
+		id = int(station.getElementsByTagName('id')[0].childNodes[0].data)
 		#print "id: %s" % id.childNodes[0].data
-		name = station.getElementsByTagName('name')[0].childNodes[0].data
+		name = str(station.getElementsByTagName('name')[0].childNodes[0].data)
 		#print "Station name: %s" % name.childNodes[0].data
-		lat = station.getElementsByTagName('lat')[0].childNodes[0].data
+		lat = float(station.getElementsByTagName('lat')[0].childNodes[0].data)
 		#print "Latitude: %s" % lat.childNodes[0].data
-		long = station.getElementsByTagName('long')[0].childNodes[0].data
+		long = float(station.getElementsByTagName('long')[0].childNodes[0].data)
 		#print "Longitude: %s" % long.childNodes[0].data
-		nbDocks = station.getElementsByTagName('nbDocks')[0].childNodes[0].data
+		nbDocks = int(station.getElementsByTagName('nbDocks')[0].childNodes[0].data)
 		#print "Number of Docks: %s" % nbDocks.childNodes[0].data
 		station_list.append(Station(id, name, nbDocks, lat, long))
 	return station_list
 
 def display_station(station):
-	print station.id, station.name, station.latitude, station.longitude, station.number_of_docks
+	print str(station.id), str(station.name), str(station.latitude), str(station.longitude), str(station.number_of_docks)
 
 def display_stations(stations):
 	for station in stations:

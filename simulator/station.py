@@ -30,7 +30,7 @@ class Station:
         return R * c
 
     def add_bikes(self, count):
-        if self.bikes + count <= self.nbDocks:
+        if self.bikes + count <= self.number_of_docks:
             self.bikes += count
             return True
         else:
