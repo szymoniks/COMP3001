@@ -11,30 +11,81 @@ class Simulator:
         if len(stations) < 1:
             raise NameError("No stations!")
 
-        # Now sorting is useless
-        # self.trips = sorted(trips, key=lambda trip: trip.start_time)
         self.trips = trips
         self.stations = stations
         self._create_station_index(self.stations)
-        # self.time = 0  # Minutes of the simulation day
-        # self.current_time = self.trips[0].start_time
         self.current_time = min(self.trips, key=attrgetter('start_time')).start_time
         self.sim_end_time = max(self.trips, key=attrgetter('end_time')).end_time
-        print self.current_time, self.sim_end_time
+
+        self.start_sorted_trips = sorted(self.trips, key=lambda trip: trip.start_time)
+        self.end_sorted_trips = sorted(self.trips, key=lambda trip: trip.end_time)
 
     def run(self, algorithm, time_step=1):
-        # self.time_step = datetime(datetime.MINYEAR, 1, 1, 0, time_step)
+        # Functional appracah - way too slow
+
+        ##############################################################################
+
+        # self.time_step = timedelta(minutes = time_step)
+
+        # while self.current_time - self.time_step < self.sim_end_time:
+            
+        #     starting_trips = self.trips_starting_now()
+        #     ending_trips = self.trips_ending_now()
+
+        #     for trip in ending_trips:
+        #         self._end_trip(trip)
+        #     for trip in starting_trips:
+        #         self._start_trip(trip)
+            
+        #     algorithm.update(self)
+
+        #     print self.current_time
+
+        #     self.current_time = self.current_time + self.time_step
+
+        ##############################################################################
+
+        # Optimised procedual approach - hopefully way faster!
+
+        ##############################################################################
+
         self.time_step = timedelta(minutes = time_step)
+
+        start_trips_iter = iter(self.start_sorted_trips)
+        end_trips_iter = iter(self.end_sorted_trips)
+
+        # I can do it, because those lists have at least one element
+        try:
+            start_trip = start_trips_iter.next()
+            end_trip = end_trips_iter.next()
+        except StopIteration:
+                pass
+
+
 
         while self.current_time - self.time_step < self.sim_end_time:
             
-            starting_trips = self.trips_starting_now()
-            ending_trips = self.trips_ending_now()
+            try:
+                while start_trip != None and start_trip.start_time - self.time_step > self.current_time and start_trip.start_time <= self.current_time:
+                    self._start_trip(start_trip)
+                    start_trip = start_trips_iter.next()
+            except StopIteration:
+                pass
 
-            for trip in ending_trips:
-                self._end_trip(trip)
-            for trip in starting_trips:
-                self._start_trip(trip)
+            try:
+                while end_trip != None and end_trip.end_time - self.time_step > self.current_time and end_trip.end_time <= self.current_time:
+                    self._end_trip(end_trip)
+                    end_trip = end_trips_iter.next()
+            except StopIteration:
+                pass
+
+            # starting_trips = self.trips_starting_now()
+            # ending_trips = self.trips_ending_now()
+
+            # for trip in ending_trips:
+            #     self._end_trip(trip)
+            # for trip in starting_trips:
+            #     self._start_trip(trip)
             
             algorithm.update(self)
 
@@ -42,15 +93,6 @@ class Simulator:
 
             self.current_time = self.current_time + self.time_step
 
-        # for i in xrange(0, 60*24, time_step):
-        #     self.time = i
-        #     starting_trips = self.trips_starting_now()
-        #     ending_trips = self.trips_ending_now()
-        #     for trip in ending_trips:
-        #         self._end_trip(trip)
-        #     for trip in starting_trips:
-        #         self._start_trip(trip)
-        #     algorithm.update(self)
 
     def get_station(self, station_id):
         return self.stations_index[station_id]
