@@ -1,10 +1,11 @@
 from trip import TripStatus
 from datetime import timedelta, datetime
 from operator import attrgetter
+from writer import Writer
 
 class Simulator:
 
-    def __init__(self, trips, stations):
+    def __init__(self, trips, stations, weather):
         if len(trips) < 1:
             raise NameError("No trips!")
 
@@ -13,14 +14,19 @@ class Simulator:
 
         self.trips = trips
         self.stations = stations
+        self.weather = sorted(weather, key=lambda weather: weather.date)
+        
         self._create_station_index(self.stations)
+        
         self.current_time = min(self.trips, key=attrgetter('start_time')).start_time
         self.sim_end_time = max(self.trips, key=attrgetter('end_time')).end_time
 
         self.start_sorted_trips = sorted(self.trips, key=lambda trip: trip.start_time)
         self.end_sorted_trips = sorted(self.trips, key=lambda trip: trip.end_time)
 
-    def run(self, algorithm, time_step=1):
+        self._updated_stations = {}
+
+    def run(self, algorithm, visualisation_output_file_name, time_step=1):
         # Functional appracah - way too slow
 
         ##############################################################################
@@ -49,21 +55,33 @@ class Simulator:
 
         ##############################################################################
 
+        logger = Writer()
+
         self.time_step = timedelta(minutes = time_step)
 
         start_trips_iter = iter(self.start_sorted_trips)
         end_trips_iter = iter(self.end_sorted_trips)
+        weather_iter = iter(self.weather)
+
+        start_trip = None
+        end_trip = None
+        weather = None
 
         # I can do it, because those lists have at least one element
         try:
             start_trip = start_trips_iter.next()
             end_trip = end_trips_iter.next()
+            weather = weather_iter.next()
+
+            logger.add_weather_update(self.current_time, weather)
         except StopIteration:
                 pass
 
 
 
         while self.current_time - self.time_step < self.sim_end_time:
+
+            self._updated_stations = {}
             
             try:
                 while start_trip != None and start_trip.start_time - self.time_step > self.current_time and start_trip.start_time <= self.current_time:
@@ -79,19 +97,30 @@ class Simulator:
             except StopIteration:
                 pass
 
-            # starting_trips = self.trips_starting_now()
-            # ending_trips = self.trips_ending_now()
-
-            # for trip in ending_trips:
-            #     self._end_trip(trip)
-            # for trip in starting_trips:
-            #     self._start_trip(trip)
+            try:
+                while weather != None and weather.date < self.current_time.date():
+                    weather = weather_iter.next()
+                    logger.add_weather_update(self.current_time, weather)
+            except StopIteration:
+                pass
             
+            
+
             algorithm.update(self)
+
+            
+
+            for station_id in self._updated_stations.keys():
+                logger.add_station_update(self.current_time, self.get_station(station_id))
+
+            
 
             print self.current_time
 
             self.current_time = self.current_time + self.time_step
+
+
+        logger.dump_log_to_XML(visualisation_output_file_name)
 
 
     def get_station(self, station_id):
@@ -108,9 +137,11 @@ class Simulator:
         return village
 
     def add_bikes(self, station_id, count):
+        self._updated_stations[station_id] = 1
         return self.get_station(station_id).add_bikes(count)
 
     def remove_bikes(self, station_id, count):
+        self._updated_stations[station_id] = 1
         return self.get_station(station_id).remove_bikes(count)
 
     def trips_starting_now(self):

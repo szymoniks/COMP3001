@@ -19,8 +19,10 @@ def load_weather(fileName):
                 continue
 
             bst, max_tempc, mean_tempc, min_tempc, max_humid, mean_humid, min_humid, max_visibility, mean_visibility, min_visibility, max_wind_speed, mean_wind_speed, max_gust_speed, precipitation, cloudcover, events, wind_degree = row.split(",")
-            weather = Weather(bst, max_tempc, mean_tempc, min_tempc, max_humid, mean_humid, min_humid, max_visibility, mean_visibility, min_visibility, max_wind_speed, mean_wind_speed, max_gust_speed, precipitation, cloudcover, events, wind_degree)
+            weather = Weather(datetime.date.fromtimestamp(bst), max_tempc, mean_tempc, min_tempc, max_humid, mean_humid, min_humid, max_visibility, mean_visibility, min_visibility, max_wind_speed, mean_wind_speed, max_gust_speed, precipitation, cloudcover, events, wind_degree)
             weather_arr.append(weather)
+
+    return weather_arr
 
 
 #main function
