@@ -20,3 +20,7 @@ Update 1:
 	a.	automate and work on succession of csv files (necessary?)
 
 note: included in repository is an example of generated xml file: dailydata.xml(for hierarchy reference) dailydata.xml is generated from hugesample.csv, which contains over a million lines.
+
+Final Update:
+
+1.Automated to work on succession of csv files.
