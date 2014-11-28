@@ -7,3 +7,12 @@ Overview: some addons and modifications to Kelvin's original google maps display
 3. Words display are temporary prototype, will replace with visuals soon
 4. To get it to work, it requires server or local server as xmlhttprequest is being used to get the xml data and this cannot access local files.
 5. Place weather_history2013_14.xml and index.htm in same directory on same server, then start index.htm on any browser
+
+Update:
+
++ Fully working and playable visualisation prototype
+
+TO Play:
+
+1. Copy all files in website repository onto main directory of local server
+2. Run index.html on local server

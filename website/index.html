@@ -19,73 +19,176 @@
   }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=weather"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="http://gmaps-utility-library.googlecode.com/svn/trunk/markermanager/release/src/markermanager.js"></script>
 
 
   <script>
-
+  //globals
   var frameDelay = 1000;
   var count = 0;
   var start = false;
+  var stations = [];
+  var weatherRecords = [];
+  var netdata = [];
+  var journeydata = [];
+  var map = null;
+  var circles = [];
+
+  function getxmllist(){
+    xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", "journeydata/xmllist.xml", false);
+    xmlhttp.send();
+    xmllist = xmlhttp.responseXML;
+    return xmllist.getElementsByTagName("name");
+  }
+
+  function extractJourneyData(){
+    var namelist = getxmllist();
+    //document.getElementById("loadbar").max = 39;
+    for(x=0; x<namelist.length; x++){
+      var filename = namelist[x].childNodes[0].nodeValue;
+      var fullname = "journeydata/".concat(filename);
+      xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", fullname, false);
+      console.log(fullname);
+      xmlhttp.send();
+      xmldata = xmlhttp.responseXML;
+      netdata[x] = xmldata.getElementsByTagName("date");
+      //console.log(netdata[x].item(0).attributes[0].value);
+      //document.getElementById("loadbar").progress = x/39;
+    }
+    document.getElementById("loader").style.zIndex="-1";
+    
+  }
+
+  function getNetDataNode(attr, type){
+    var node = null;
+    if(type == "date"){
+      for(x=0; x<netdata.length; x++){
+        for(y=0; y<netdata[x].length; y++){
+          if(netdata[x].item(y).attributes[0].value == attr)
+            node = netdata[x][y];
+        }
+      }
+    }
+
+    return node;
+  }
+
+
+  function createCircle(latLng,nbBikes,name,map,i){
+
+  var stationOptions = {
+    strokeColor: '#FF0000',
+    strokeOpacity: 0,
+    strokeWeight: 1,
+    fillColor: '#FF0000',
+    fillOpacity: 0.5,
+    map: map,
+    center: latLng,
+    radius: nbBikes*5
+  };
+
+  var html = "<div class='infowindow'><b>" + name + "</b> <br/>" + "Number of Bikes: " + nbBikes +'<br/></div>';
+
+  var infowindow = new google.maps.InfoWindow({content: html});
+
+  circles[i] = new google.maps.Circle(stationOptions);
+
+  google.maps.event.addListener(circles[i],"click",function(){
+    infowindow.setPosition(latLng);
+    infowindow.open(map);
+  });
+  }
+
+
+  function drawNetCircles(node){
+
+    var stationlist = node.getElementsByTagName("stationId");
+    for(i=0; i<stationlist.length; i++){
+          var radius = parseInt(stationlist[i].getElementsByTagName("net")[0].firstChild.data);
+          var index = parseInt(stationlist[i].attributes[0].value);
+          index -= 1;
+          radius = (radius*5);
+          try{
+            circles[index].setRadius(radius);
+            if(radius < 0){
+              circles[index].setOptions({fillColor : "#0033FF"});
+            }
+            if(radius > 0){
+              circles[index].setOptions({fillColor : "#FF0000"});
+            }
+          }catch(err){
+            //ignore
+          }
+          
+        }
+      
+      /*var latLng = new google.maps.LatLng(stationNode.getElementsByTagName("lat")[0].firstChild.data,stationNode.getElementsByTagName("long")[0].firstChild.data);
+      var name = stationNode.getElementsByTagName("name")[0].firstChild.data;*/
+      
+      //var radius = parseInt(stationlist[i].childNodes[1].nodeValue, 10);
+      //createCircle(latLng, radius, name, map);
+
+    
+  }
+
+  function updateWeather(){
+    //loop through the length of the list of weather records
+    if(count < weatherRecords.length){
+      var date = weatherRecords[count].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
+      var d = new Date(date);
+      var datestring = d.toDateString();
+
+      //for each iteration, change the words displayed bottom of screen to that of the record
+      document.getElementById("date").innerHTML = datestring;
+      document.getElementById("temp").innerHTML = weatherRecords[count].getElementsByTagName("temp")[0].childNodes[0].nodeValue + " degrees celcius";
+      //sometimes event tag may be nil where weather is clear abit of hardcoding is required
+      if(weatherRecords[count].getElementsByTagName("events").length != 0)
+        document.getElementById("weather").innerHTML = weatherRecords[count].getElementsByTagName("events")[0].childNodes[0].nodeValue;
+      else document.getElementById("weather").innerHTML = "Clear";
+      document.getElementById('wind').innerHTML = weatherRecords[count].getElementsByTagName("wind")[0].childNodes[0].nodeValue + " knots";
+
+      var netnode = getNetDataNode(date, "date");
+      drawNetCircles(netnode);
+      //console.log(netnode);
+      //move the slider
+      document.getElementById('slider').value = count;
+      //increment counter
+      count++;
+      //if start boolean is true, meaning that user has pressed play, 
+      //set the timeout before the next update, the timeout being the speed at which the user desires
+      if(start)
+        setTimeout(updateWeather, frameDelay);
+    }
+
+  }
+
 
   function initialize() {
 
     xmlUrl = "http://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livecyclehireupdates.xml";
-
-
-
-    //create a xmlhttprequest for live cycle updates xml
+ 
     var request = new XMLHttpRequest();
     request.open('GET', xmlUrl, true);
     request.onload = function() {
       loadData(request.responseXML);
     };
-    //send the request
     request.send();
 
-    //create request for weather history stored in same server space
     xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", "weather_history2013_14.xml", false);
-    //send request
     xmlhttp.send();
-    //extract the response in a xmlWeather
     xmlWeather = xmlhttp.responseXML;
-
-    //create list of individual weather records by day
-    var weatherRecords = xmlWeather.getElementsByTagName("record");
-    
-    //update function which plays through the weather history day by day, shown bottom of screen
-    var update = function(){
-      //loop through the length of the list of weather records
-      if(count < weatherRecords.length){
-        //for each iteration, change the words displayed bottom of screen to that of the record
-        document.getElementById("date").innerHTML = weatherRecords[count].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
-        document.getElementById("temp").innerHTML = weatherRecords[count].getElementsByTagName("temp")[0].childNodes[0].nodeValue + " degrees celcius";
-        //sometimes event tag may be nil where weather is clear abit of hardcoding is required
-        if(weatherRecords[count].getElementsByTagName("events").length != 0)
-          document.getElementById("weather").innerHTML = weatherRecords[count].getElementsByTagName("events")[0].childNodes[0].nodeValue;
-        else document.getElementById("weather").innerHTML = "Clear";
-        document.getElementById('wind').innerHTML = weatherRecords[count].getElementsByTagName("wind")[0].childNodes[0].nodeValue + " knots";
-        //move the slider
-        document.getElementById('slider').value = count;
-        //increment counter
-        count++;
-        //if start boolean is true, meaning that user has pressed play, 
-        //set the timeout before the next update, the timeout being the speed at which the user desires
-        if(start)
-          setTimeout(update, frameDelay);
-      }
-
-    }
+    weatherRecords = xmlWeather.getElementsByTagName("record");
     
     //what happens when user presses play
-    document.getElementById('play').onclick = function(){
-      //if not already playing
-      if(!start){
-        //change state to playing
+    document.getElementById('play').onclick = function(){   
+      if(!start){  
         start = true;
         //start playing through weather histry
-        update();
+        updateWeather();
         //change button to pause button
         document.getElementById('play').innerHTML = "Pause";
       }
@@ -112,6 +215,8 @@
     //allow control of playback by moving slider
     document.getElementById('slider').onchange = function(){
       count = document.getElementById('slider').value
+      if(!start)
+        updateWeather();
     }
 
     
@@ -123,74 +228,39 @@
   {
   
 
-     var mapOptions = {
+    var mapOptions = {
       zoom: 12,
       center: new google.maps.LatLng(51.518175,-0.128721)
     };
     
-    var map = new google.maps.Map(document.getElementById('map-canvas'),
+    map = new google.maps.Map(document.getElementById('map-canvas'),
       mapOptions);
 
-
-     var weatherLayer = new google.maps.weather.WeatherLayer({
+    /*var weatherLayer = new google.maps.weather.WeatherLayer({
       temperatureUnits: google.maps.weather.TemperatureUnit.CELCIUS
     });
     weatherLayer.setMap(map);
 
     var cloudLayer = new google.maps.weather.CloudLayer();
-    cloudLayer.setMap(map);
+    cloudLayer.setMap(map);*/
 
-    var stations = data.documentElement.getElementsByTagName("station");
+    stations = data.getElementsByTagName("station");
+    //console.log(stations);
 
-    for(i=0;i<stations.length;i++)
-    {
-       var latLng = new google.maps.LatLng(stations[i].getElementsByTagName("lat")[0].firstChild.data,stations[i].getElementsByTagName("long")[0].firstChild.data);
-
-        var nbBikes = stations[i].getElementsByTagName("nbBikes")[0].firstChild.data;
-
-        var name = stations[i].getElementsByTagName("name")[0].firstChild.data;
-          
-         //createMarker(latLng,map);
-         createCircle(latLng,nbBikes,name,map);
+    for(i=0;i<stations.length;i++){
+      var latLng = new google.maps.LatLng(stations[i].getElementsByTagName("lat")[0].firstChild.data,stations[i].getElementsByTagName("long")[0].firstChild.data);
+      var nbBikes = stations[i].getElementsByTagName("nbBikes")[0].firstChild.data;
+      var name = stations[i].getElementsByTagName("name")[0].firstChild.data;    
+      createCircle(latLng,nbBikes,name,map,i);
+      console.log(stations[i].getElementsByTagName("id")[0].firstChild.data);
     }
+    extractJourneyData();
   }
-
-    function createMarker(latLng,map)
-    {
-            var marker = new google.maps.Marker({
-            position: latLng,
-            map: map});
-  }
-
-    function createCircle(latLng,nbBikes,name,map)
-    {
-      var stationOptions = {
-      strokeColor: '#FF0000',
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      fillColor: '#FF0000',
-      fillOpacity: 0.35,
-      map: map,
-      center: latLng,
-      radius: nbBikes*1
-    };
-
-
-    var html = "<div class='infowindow'><b>" + name + "</b> <br/>" + "Number of Bikes: " + nbBikes +'<br/></div>';
-
-    var infowindow = new google.maps.InfoWindow({content: html});
-
-    var circle = new google.maps.Circle(stationOptions);
-
-    google.maps.event.addListener(circle,"click",function()
-    {
-      infowindow.setPosition(latLng);
-      infowindow.open(map);
-    });
-    }
-
 
   google.maps.event.addDomListener(window, 'load', initialize);
+
+  
+
 
   </script>
 </head>
@@ -210,6 +280,8 @@
   <p id = "temp" style = "text-align:center; color:white; float:left; padding-left: 10px; ">16 degrees celcius</p>
   <p id = "wind" style = "text-align:center; color:white; float:left; padding-left: 10px; ">60knots</p>
   <p id = "weather" style = "text-align:center; color:white; float:left; padding-left: 10px; ">Sunny</p>
+
+  <div id="loader" style = "width: 100%; height: 100%; position: absolute; top: 200px; left: 120px; z-index:10; color:white; font-size: 50px;">Loading...(it takes a while)</div>
 
 </body>
 </html>
