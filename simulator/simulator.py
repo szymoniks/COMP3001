@@ -19,6 +19,8 @@ class Simulator:
 
         self._create_station_index(self.stations)
 
+        # print self.stations_index.keys()
+
         self.current_time = min(
             self.trips, key=attrgetter('start_time')).start_time
         self.sim_end_time = max(
@@ -54,6 +56,10 @@ class Simulator:
         except StopIteration:
             pass
 
+        x = 1
+
+        algorithm.init(self)
+
         while self.current_time - self.time_step < self.sim_end_time:
 
             self._updated_stations = {}
@@ -81,6 +87,8 @@ class Simulator:
 
             algorithm.update(self)
 
+            # print self._updated_stations
+
             for station_id in self._updated_stations.keys():
                 logger.add_station_update(
                     self.current_time, self.get_station(station_id))
@@ -107,10 +115,12 @@ class Simulator:
         return village
 
     def add_bikes(self, station_id, count):
+        # print "ADD"
         self._updated_stations[station_id] = 1
         return self.get_station(station_id).add_bikes(count)
 
     def remove_bikes(self, station_id, count):
+        # print "REMOVE"
         self._updated_stations[station_id] = 1
         return self.get_station(station_id).remove_bikes(count)
 
@@ -147,6 +157,8 @@ class Simulator:
         for station in stations:
             self.stations_index[station.id] = station
 
+        # print self.stations_index.keys()
+
     def _within_time_step_future(self, time):
         return time > self.current_time and self.current_time + self.time_step >= time
 
@@ -158,7 +170,7 @@ class Simulator:
         former_status = trip.status
         if trip.end_id in self.stations_index.keys():
 
-            if self.get_station(trip.end_id).add_bikes(1):
+            if self.add_bikes(trip.end_id, 1):
                 trip.status = TripStatus.SUCCESSFUL
             else:
                 trip.status = TripStatus.FAILED
@@ -168,9 +180,11 @@ class Simulator:
                 "Station id " + str(trip.end_id) + " does not exist!")
 
     def _start_trip(self, trip):
+        # print "START_TRIP"
+
         if trip.start_id in self.stations_index.keys():
 
-            if self.get_station(trip.start_id).remove_bikes(1):
+            if self.remove_bikes(trip.start_id, 1):
                 trip.status = TripStatus.ACTIVE
             else:
                 trip.status = TripStatus.FAILED

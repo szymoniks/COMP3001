@@ -3,6 +3,9 @@ class TestAlg:
     def __init__(self):
 		pass
 
+    def init(self, simulator):
+        pass
+
 	# Simple algorithm that updates all stations to be full all the time
 
     def update(self, simulator):

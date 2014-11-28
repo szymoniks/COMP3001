@@ -55,9 +55,11 @@ def load_trips(file):
             end_id = t[4]
             start_id = t[7]
 
-            trip = Trip(start_time, end_time, start_id, end_id)
+            # print start_id, end_id
+            if end_id != "":
+                trip = Trip(start_time, end_time, int(start_id), int(end_id))
 
-            trips.append(trip)
+                trips.append(trip)
     return trips
 
 def display_helper(trip):
