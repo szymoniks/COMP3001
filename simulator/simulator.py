@@ -34,7 +34,7 @@ class Simulator:
         self._updated_stations = {}
 
     def run(self, algorithm, visualisation_output_file_name, time_step=1):
-        logger = Writer()
+        logger = Writer(visualisation_output_file_name)
 
         self.time_step = timedelta(minutes=time_step)
 
@@ -56,16 +56,16 @@ class Simulator:
         except StopIteration:
             pass
 
-        x = 1
 
         algorithm.init(self)
 
         while self.current_time - self.time_step < self.sim_end_time:
 
+            logger.new_date(self.current_time)
+
             self._updated_stations = {}
 
             try:
-                # print start_trip.start_time - self.time_step, self.time_step, self.current_time, start_trip.start_time - self.time_step > self.current_time, start_trip.start_time <= self.current_time
                 while start_trip != None and start_trip.start_time <= self.current_time:
                     # print "START"
                     self._start_trip(start_trip)
@@ -88,9 +88,9 @@ class Simulator:
             except StopIteration:
                 pass
 
+
             algorithm.update(self)
 
-            # print self._updated_stations
 
             for station_id in self._updated_stations.keys():
                 logger.add_station_update(
@@ -98,14 +98,9 @@ class Simulator:
 
             print self.current_time
 
-            # if (x == 3):
-            #     return
-
-            x += 1  
-
             self.current_time = self.current_time + self.time_step
 
-        logger.dump_log_to_XML(visualisation_output_file_name)
+        logger.dump_log_to_XML()
 
     def get_station(self, station_id):
         return self.stations_index[station_id]
@@ -121,12 +116,10 @@ class Simulator:
         return village
 
     def add_bikes(self, station_id, count):
-        # print "ADD"
         self._updated_stations[station_id] = 1
         return self.get_station(station_id).add_bikes(count)
 
     def remove_bikes(self, station_id, count):
-        # print "REMOVE"
         self._updated_stations[station_id] = 1
         return self.get_station(station_id).remove_bikes(count)
 
