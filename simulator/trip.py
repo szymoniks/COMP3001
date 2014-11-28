@@ -13,8 +13,8 @@ class Trip:
     def __init__(self, start_time, end_time, start_id, end_id):
         self.start_time = start_time
         self.end_time = end_time
-        self.start_id = start_id
-        self.end_id = end_id
+        self.start_id = int(start_id)
+        self.end_id = int(end_id)
         self.status = TripStatus.INACTIVE
 
     def start_minute_of_day(self):

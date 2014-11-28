@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 class Station:
 
     def __init__(self, id, name, number_of_docks, lat, lng):
-        self.id = id
+        self.id = int(id)
         self.name = name
         self.latitude = lat
         self.longitude = lng
