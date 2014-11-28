@@ -10,7 +10,7 @@
     padding: 2px;
     background-color: black;
 
-   
+
   }
 
   #map-canvas {
@@ -19,9 +19,21 @@
   }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=weather"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>-->
   <script src="http://gmaps-utility-library.googlecode.com/svn/trunk/markermanager/release/src/markermanager.js"></script>
+  <script language="javascript" type="text/javascript" src="js/jquery.js"></script>
+  <script language="javascript" type="text/javascript" src="js/jquery.flot.js"></script>
 
+  <script type="text/javascript">
+  $(function() {
+    var data = [];
+
+    // get list of files
+    files = function(folder) {
+
+    }
+  });
+  </script>
 
   <script>
   //globals
@@ -59,7 +71,7 @@
       //document.getElementById("loadbar").progress = x/39;
     }
     document.getElementById("loader").style.zIndex="-1";
-    
+
   }
 
   function getNetDataNode(attr, type){
@@ -122,16 +134,16 @@
           }catch(err){
             //ignore
           }
-          
+
         }
-      
+
       /*var latLng = new google.maps.LatLng(stationNode.getElementsByTagName("lat")[0].firstChild.data,stationNode.getElementsByTagName("long")[0].firstChild.data);
       var name = stationNode.getElementsByTagName("name")[0].firstChild.data;*/
-      
+
       //var radius = parseInt(stationlist[i].childNodes[1].nodeValue, 10);
       //createCircle(latLng, radius, name, map);
 
-    
+
   }
 
   function updateWeather(){
@@ -157,7 +169,7 @@
       document.getElementById('slider').value = count;
       //increment counter
       count++;
-      //if start boolean is true, meaning that user has pressed play, 
+      //if start boolean is true, meaning that user has pressed play,
       //set the timeout before the next update, the timeout being the speed at which the user desires
       if(start)
         setTimeout(updateWeather, frameDelay);
@@ -169,7 +181,7 @@
   function initialize() {
 
     xmlUrl = "http://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livecyclehireupdates.xml";
- 
+
     var request = new XMLHttpRequest();
     request.open('GET', xmlUrl, true);
     request.onload = function() {
@@ -182,10 +194,10 @@
     xmlhttp.send();
     xmlWeather = xmlhttp.responseXML;
     weatherRecords = xmlWeather.getElementsByTagName("record");
-    
+
     //what happens when user presses play
-    document.getElementById('play').onclick = function(){   
-      if(!start){  
+    document.getElementById('play').onclick = function(){
+      if(!start){
         start = true;
         //start playing through weather histry
         updateWeather();
@@ -219,20 +231,20 @@
         updateWeather();
     }
 
-    
+
 
   }
 
 
   function loadData(data)
   {
-  
+
 
     var mapOptions = {
       zoom: 12,
       center: new google.maps.LatLng(51.518175,-0.128721)
     };
-    
+
     map = new google.maps.Map(document.getElementById('map-canvas'),
       mapOptions);
 
@@ -250,7 +262,7 @@
     for(i=0;i<stations.length;i++){
       var latLng = new google.maps.LatLng(stations[i].getElementsByTagName("lat")[0].firstChild.data,stations[i].getElementsByTagName("long")[0].firstChild.data);
       var nbBikes = stations[i].getElementsByTagName("nbBikes")[0].firstChild.data;
-      var name = stations[i].getElementsByTagName("name")[0].firstChild.data;    
+      var name = stations[i].getElementsByTagName("name")[0].firstChild.data;
       createCircle(latLng,nbBikes,name,map,i);
       console.log(stations[i].getElementsByTagName("id")[0].firstChild.data);
     }
@@ -259,7 +271,7 @@
 
   google.maps.event.addDomListener(window, 'load', initialize);
 
-  
+
 
 
   </script>
