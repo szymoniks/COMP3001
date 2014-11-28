@@ -8,16 +8,16 @@ def convertDate(date_str):
     """
     Convert date string format to date object.
     """
-    print "Date:", date
+    #print "Date:", date
     date_array = date_str.split('/')
     year = int(date_array[2])
     month = int(date_array[0])
     day = int(date_array[1])
-    print "Year:", year
-    print "Month:", month
-    print "Day:", day
+    #print "Year:", year
+    #print "Month:", month
+    #print "Day:", day
     date_obj = date(year, month, day)
-    print "Date Object:", date_obj
+    #print "Date Object:", date_obj
     return date_obj
 
 
