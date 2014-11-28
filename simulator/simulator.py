@@ -59,9 +59,7 @@ class Simulator:
             self._updated_stations = {}
 
             try:
-                # print start_trip.start_time - self.time_step, self.time_step, self.current_time, start_trip.start_time - self.time_step > self.current_time, start_trip.start_time <= self.current_time
                 while start_trip != None and start_trip.start_time <= self.current_time:
-                    print "START"
                     self._start_trip(start_trip)
                     start_trip = start_trips_iter.next()
             except StopIteration:
@@ -69,7 +67,6 @@ class Simulator:
 
             try:
                 while end_trip != None and end_trip.end_time <= self.current_time:
-                    print "END"
                     self._end_trip(end_trip)
                     end_trip = end_trips_iter.next()
             except StopIteration:
@@ -88,11 +85,13 @@ class Simulator:
                 logger.add_station_update(
                     self.current_time, self.get_station(station_id))
 
-            print self.current_time
-
             self.current_time = self.current_time + self.time_step
 
         logger.dump_log_to_XML(visualisation_output_file_name)
+
+        print "Total trips: %d" % len(self.trips)
+        print "Successful trips: %d" % len(self.successful_trips())
+        print "Failed trips: %d" % len(self.failed_trips())
 
     def get_station(self, station_id):
         return self.stations_index[station_id]
@@ -127,6 +126,18 @@ class Simulator:
         return filter(lambda trip: trip.status == TripStatus.ACTIVE,
                       self.trips)
 
+    def successful_trips(self):
+        return filter(lambda trip: trip.status == TripStatus.SUCCESSFUL,
+                      self.end_sorted_trips)
+
+    def semisuccessful_trips(self):
+        return filter(lambda trip: trip.status == TripStatus.SEMI_FAILED,
+                      self.end_sorted_trips)
+
+    def failed_trips(self):
+        return filter(lambda trip: trip.status == TripStatus.FAILED,
+                      self.end_sorted_trips)
+
     def get_wather(self):
         # TODO
         pass
@@ -144,6 +155,7 @@ class Simulator:
 
     # TODO: Handle semi-successful trips
     def _end_trip(self, trip):
+        former_status = trip.status
         if trip.end_id in self.stations_index.keys():
 
             if self.get_station(trip.end_id).add_bikes(1):
@@ -153,7 +165,7 @@ class Simulator:
 
         else:
             self._raise_warning(
-                "Station id " + trip.end_id + " does not exist!")
+                "Station id " + str(trip.end_id) + " does not exist!")
 
     def _start_trip(self, trip):
         if trip.start_id in self.stations_index.keys():
@@ -165,7 +177,7 @@ class Simulator:
 
         else:
             self._raise_warning(
-                "Station id " + trip.start_id + " does not exist!")
+                "Station id " + str(trip.start_id) + " does not exist!")
 
     def _raise_warning(self, message):
         # print("> Warning: " + message)
