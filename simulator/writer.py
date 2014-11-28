@@ -6,6 +6,7 @@ class Writer:
 		self.record_id = 1
 
 	def add_station_update(self, time_stamp, station):
+		# print "STATION"
 		station_update = self._create_record(time_stamp)
 
 		station_update.attrib["type"] = "station"
@@ -13,6 +14,7 @@ class Writer:
 		station.to_xml(station_update)
 
 	def add_weather_update(self, time_stamp, weather):
+		print "WEATHER"
 		weather_update = self._create_record(time_stamp)
 
 		weather_update.attrib["type"] = "weather"

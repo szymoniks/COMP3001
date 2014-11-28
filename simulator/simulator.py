@@ -19,6 +19,8 @@ class Simulator:
 
         self._create_station_index(self.stations)
 
+        # print self.stations_index.keys()
+
         self.current_time = min(
             self.trips, key=attrgetter('start_time')).start_time
         self.sim_end_time = max(
@@ -54,6 +56,10 @@ class Simulator:
         except StopIteration:
             pass
 
+        x = 1
+
+        algorithm.init(self)
+
         while self.current_time - self.time_step < self.sim_end_time:
 
             self._updated_stations = {}
@@ -61,7 +67,7 @@ class Simulator:
             try:
                 # print start_trip.start_time - self.time_step, self.time_step, self.current_time, start_trip.start_time - self.time_step > self.current_time, start_trip.start_time <= self.current_time
                 while start_trip != None and start_trip.start_time <= self.current_time:
-                    print "START"
+                    # print "START"
                     self._start_trip(start_trip)
                     start_trip = start_trips_iter.next()
             except StopIteration:
@@ -69,7 +75,7 @@ class Simulator:
 
             try:
                 while end_trip != None and end_trip.end_time <= self.current_time:
-                    print "END"
+                    # print "END"
                     self._end_trip(end_trip)
                     end_trip = end_trips_iter.next()
             except StopIteration:
@@ -84,11 +90,18 @@ class Simulator:
 
             algorithm.update(self)
 
+            print self._updated_stations
+
             for station_id in self._updated_stations.keys():
                 logger.add_station_update(
                     self.current_time, self.get_station(station_id))
 
             print self.current_time
+
+            # if (x == 3):
+            #     return
+
+            x += 1  
 
             self.current_time = self.current_time + self.time_step
 
@@ -108,10 +121,12 @@ class Simulator:
         return village
 
     def add_bikes(self, station_id, count):
+        # print "ADD"
         self._updated_stations[station_id] = 1
         return self.get_station(station_id).add_bikes(count)
 
     def remove_bikes(self, station_id, count):
+        # print "REMOVE"
         self._updated_stations[station_id] = 1
         return self.get_station(station_id).remove_bikes(count)
 
@@ -136,6 +151,8 @@ class Simulator:
         for station in stations:
             self.stations_index[station.id] = station
 
+        print self.stations_index.keys()
+
     def _within_time_step_future(self, time):
         return time > self.current_time and self.current_time + self.time_step >= time
 
@@ -144,28 +161,33 @@ class Simulator:
 
     # TODO: Handle semi-successful trips
     def _end_trip(self, trip):
+        # print "END_TRIP"
+
+        # print trip.end_id, trip.end_id in self.stations_index.keys()
         if trip.end_id in self.stations_index.keys():
 
-            if self.get_station(trip.end_id).add_bikes(1):
+            if self.add_bikes(trip.end_id, 1):
                 trip.status = TripStatus.SUCCESSFUL
             else:
                 trip.status = TripStatus.FAILED
 
         else:
             self._raise_warning(
-                "Station id " + trip.end_id + " does not exist!")
+                "Station id " + str(trip.end_id) + " does not exist!")
 
     def _start_trip(self, trip):
+        # print "START_TRIP"
+
         if trip.start_id in self.stations_index.keys():
 
-            if self.get_station(trip.start_id).remove_bikes(1):
+            if self.remove_bikes(trip.start_id, 1):
                 trip.status = TripStatus.ACTIVE
             else:
                 trip.status = TripStatus.FAILED
 
         else:
             self._raise_warning(
-                "Station id " + trip.start_id + " does not exist!")
+                "Station id " + str(trip.start_id) + " does not exist!")
 
     def _raise_warning(self, message):
         # print("> Warning: " + message)
