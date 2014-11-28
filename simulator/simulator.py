@@ -90,7 +90,7 @@ class Simulator:
 
             algorithm.update(self)
 
-            print self._updated_stations
+            # print self._updated_stations
 
             for station_id in self._updated_stations.keys():
                 logger.add_station_update(
@@ -151,7 +151,7 @@ class Simulator:
         for station in stations:
             self.stations_index[station.id] = station
 
-        print self.stations_index.keys()
+        # print self.stations_index.keys()
 
     def _within_time_step_future(self, time):
         return time > self.current_time and self.current_time + self.time_step >= time
