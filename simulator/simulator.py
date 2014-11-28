@@ -1,7 +1,8 @@
 from trip import TripStatus
-from datetime import timedelta, datetime
+from datetime import timedelta
 from operator import attrgetter
 from writer import Writer
+
 
 class Simulator:
 
@@ -15,49 +16,25 @@ class Simulator:
         self.trips = trips
         self.stations = stations
         self.weather = sorted(weather, key=lambda weather: weather.date)
-        
-        self._create_station_index(self.stations)
-        
-        self.current_time = min(self.trips, key=attrgetter('start_time')).start_time
-        self.sim_end_time = max(self.trips, key=attrgetter('end_time')).end_time
 
-        self.start_sorted_trips = sorted(self.trips, key=lambda trip: trip.start_time)
-        self.end_sorted_trips = sorted(self.trips, key=lambda trip: trip.end_time)
+        self._create_station_index(self.stations)
+
+        self.current_time = min(
+            self.trips, key=attrgetter('start_time')).start_time
+        self.sim_end_time = max(
+            self.trips, key=attrgetter('end_time')).end_time
+
+        self.start_sorted_trips = sorted(
+            self.trips, key=lambda trip: trip.start_time)
+        self.end_sorted_trips = sorted(
+            self.trips, key=lambda trip: trip.end_time)
 
         self._updated_stations = {}
 
     def run(self, algorithm, visualisation_output_file_name, time_step=1):
-        # Functional appracah - way too slow
-
-        ##############################################################################
-
-        # self.time_step = timedelta(minutes = time_step)
-
-        # while self.current_time - self.time_step < self.sim_end_time:
-            
-        #     starting_trips = self.trips_starting_now()
-        #     ending_trips = self.trips_ending_now()
-
-        #     for trip in ending_trips:
-        #         self._end_trip(trip)
-        #     for trip in starting_trips:
-        #         self._start_trip(trip)
-            
-        #     algorithm.update(self)
-
-        #     print self.current_time
-
-        #     self.current_time = self.current_time + self.time_step
-
-        ##############################################################################
-
-        # Optimised procedual approach - hopefully way faster!
-
-        ##############################################################################
-
         logger = Writer()
 
-        self.time_step = timedelta(minutes = time_step)
+        self.time_step = timedelta(minutes=time_step)
 
         start_trips_iter = iter(self.start_sorted_trips)
         end_trips_iter = iter(self.end_sorted_trips)
@@ -75,14 +52,12 @@ class Simulator:
 
             logger.add_weather_update(self.current_time, weather)
         except StopIteration:
-                pass
-
-
+            pass
 
         while self.current_time - self.time_step < self.sim_end_time:
 
             self._updated_stations = {}
-            
+
             try:
                 # print start_trip.start_time - self.time_step, self.time_step, self.current_time, start_trip.start_time - self.time_step > self.current_time, start_trip.start_time <= self.current_time
                 while start_trip != None and start_trip.start_time <= self.current_time:
@@ -106,25 +81,18 @@ class Simulator:
                     logger.add_weather_update(self.current_time, weather)
             except StopIteration:
                 pass
-            
-            
 
             algorithm.update(self)
 
-            
-
             for station_id in self._updated_stations.keys():
-                logger.add_station_update(self.current_time, self.get_station(station_id))
-
-            
+                logger.add_station_update(
+                    self.current_time, self.get_station(station_id))
 
             print self.current_time
 
             self.current_time = self.current_time + self.time_step
 
-
         logger.dump_log_to_XML(visualisation_output_file_name)
-
 
     def get_station(self, station_id):
         return self.stations_index[station_id]
@@ -148,12 +116,10 @@ class Simulator:
         return self.get_station(station_id).remove_bikes(count)
 
     def trips_starting_now(self):
-        # f = lambda t: self._within_time_step_future(t.start_minute_of_day)
         f = lambda t: self._within_time_step_future(t.start_time)
         return filter(f, self.trips)
 
     def trips_ending_now(self):
-        # f = lambda t: self._within_time_step_past(t.end_minute_of_day)
         f = lambda t: self._within_time_step_past(t.end_time)
         return filter(f, self.trips)
 
@@ -171,7 +137,6 @@ class Simulator:
             self.stations_index[station.id] = station
 
     def _within_time_step_future(self, time):
-        # print time, self.current_time, type(time), type(self.current_time)
         return time > self.current_time and self.current_time + self.time_step >= time
 
     def _within_time_step_past(self, time):
@@ -187,7 +152,8 @@ class Simulator:
                 trip.status = TripStatus.FAILED
 
         else:
-            self._raise_warning("Station id " + trip.end_id + " does not exist!")
+            self._raise_warning(
+                "Station id " + trip.end_id + " does not exist!")
 
     def _start_trip(self, trip):
         if trip.start_id in self.stations_index.keys():
@@ -198,7 +164,8 @@ class Simulator:
                 trip.status = TripStatus.FAILED
 
         else:
-            self._raise_warning("Station id " + trip.start_id + " does not exist!")
+            self._raise_warning(
+                "Station id " + trip.start_id + " does not exist!")
 
     def _raise_warning(self, message):
         # print("> Warning: " + message)
