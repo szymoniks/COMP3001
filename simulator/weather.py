@@ -1,9 +1,30 @@
 import xml.etree.ElementTree as ET
+from datetime import datetime as dt
+from datetime import date
+
+#convert date in string format to datetime format
+#arg0: date time string
+def convertDate(date_str):
+    """
+    Convert date string format to date object.
+    """
+    print "Date:", date
+    date_array = date_str.split('/')
+    year = int(date_array[2])
+    month = int(date_array[0])
+    day = int(date_array[1])
+    print "Year:", year
+    print "Month:", month
+    print "Day:", day
+    date_obj = date(year, month, day)
+    print "Date Object:", date_obj
+    return date_obj
+
 
 class Weather:
-    
+
     def __init__(self, date,max_tempc,mean_tempc,min_tempc,max_humid,mean_humid,min_humid,max_visibility,mean_visibility,min_visibility,max_wind_speed,mean_wind_speed,max_gust_speed,precipitation,cloudcover,events,wind_degree):
-        self.date = date
+        self.date = convertDate(date)
         self.max_tempc = max_tempc
         self.mean_tempc = mean_tempc
         self.min_tempc = min_tempc
@@ -25,7 +46,7 @@ class Weather:
             self.is_fog = True
             self.is_rain = True
             self.is_thunderstorm = False
-       
+
         if(events == "Rain-Thunderstorm"):
             self.is_fog = False
             self.is_rain = True
