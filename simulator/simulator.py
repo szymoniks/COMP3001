@@ -84,14 +84,17 @@ class Simulator:
             self._updated_stations = {}
             
             try:
-                while start_trip != None and start_trip.start_time - self.time_step > self.current_time and start_trip.start_time <= self.current_time:
+                # print start_trip.start_time - self.time_step, self.time_step, self.current_time, start_trip.start_time - self.time_step > self.current_time, start_trip.start_time <= self.current_time
+                while start_trip != None and start_trip.start_time <= self.current_time:
+                    print "START"
                     self._start_trip(start_trip)
                     start_trip = start_trips_iter.next()
             except StopIteration:
                 pass
 
             try:
-                while end_trip != None and end_trip.end_time - self.time_step > self.current_time and end_trip.end_time <= self.current_time:
+                while end_trip != None and end_trip.end_time <= self.current_time:
+                    print "END"
                     self._end_trip(end_trip)
                     end_trip = end_trips_iter.next()
             except StopIteration:
