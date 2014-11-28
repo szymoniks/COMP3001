@@ -28,9 +28,22 @@
   $(function() {
     var data = [];
 
-    // get list of files
-    files = function(folder) {
+    // get list of files from folder
+    var files = function(dir) {
+      var filesystem = require("FS");
+      var results = [];
 
+      file system.readdirSync(dir).forEach(function(file) {
+        file = dir +'/'+file;
+        var stat = filesystem.statSync(file);
+
+        if (stat && stat.isDirectory()) {
+          results = results.concat(files(files))
+        } else {
+          results.push(file);
+        }
+      });
+      return results;
     }
   });
   </script>
