@@ -2,6 +2,7 @@ from trip import TripStatus
 from datetime import timedelta
 from operator import attrgetter
 from writer import Writer
+from weather import Weather
 
 
 class Simulator:
@@ -31,6 +32,8 @@ class Simulator:
         self.end_sorted_trips = sorted(
             self.trips, key=lambda trip: trip.end_time)
 
+        self.current_weather = None
+
         self._updated_stations = {}
 
     def run(self, algorithm, visualisation_output_file_name, time_step=1):
@@ -44,15 +47,13 @@ class Simulator:
 
         start_trip = None
         end_trip = None
-        weather = None
+        self.current_weather = None
 
         # I can do it, because those lists have at least one element
         try:
             start_trip = start_trips_iter.next()
             end_trip = end_trips_iter.next()
-            weather = weather_iter.next()
-
-            logger.add_weather_update(self.current_time, weather)
+            self.current_weather = weather_iter.next()
         except StopIteration:
             pass
 
@@ -80,9 +81,19 @@ class Simulator:
                 pass
 
             try:
-                while weather != None and weather.date < self.current_time.date():
-                    weather = weather_iter.next()
-                    logger.add_weather_update(self.current_time, weather)
+                # print "weather", self.current_weather.date, self.current_time.date()
+                
+                cur_weather = self.current_weather
+                weather_updated = False
+
+                while cur_weather != None and cur_weather.date < self.current_time.date():
+                    cur_weather = weather_iter.next()
+                    weather_updated = True
+
+                if weather_updated:
+                    self.current_weather = cur_weather
+                    logger.add_weather_update(self.current_weather)
+
             except StopIteration:
                 pass
 
@@ -91,8 +102,10 @@ class Simulator:
 
 
             for station_id in self._updated_stations.keys():
-                logger.add_station_update(
-                    self.current_time, self.get_station(station_id))
+                logger.add_station_update(self.get_station(station_id))
+
+
+            print self.current_time
 
             self.current_time = self.current_time + self.time_step
 
@@ -149,9 +162,8 @@ class Simulator:
         return filter(lambda trip: trip.status == TripStatus.FAILED,
                       self.end_sorted_trips)
 
-    def get_wather(self):
-        # TODO
-        pass
+    def get_weather(self):
+        return self.cur_weather
 
     def _create_station_index(self, stations):
         self.stations_index = {}

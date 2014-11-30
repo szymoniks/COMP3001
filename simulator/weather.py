@@ -59,7 +59,6 @@ class Weather:
 
 
     def to_xml(self, parent_node):
-        ET.SubElement(parent_node, "date").text = self.date
         ET.SubElement(parent_node, "max_tempc").text = self.max_tempc
         ET.SubElement(parent_node, "mean_tempc").text = self.mean_tempc
         ET.SubElement(parent_node, "min_tempc").text = self.min_tempc

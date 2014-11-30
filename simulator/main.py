@@ -23,14 +23,13 @@ def main():
 	print "Loading stations..."
 	stations = load_station.load_stations("data/stations.xml")
 	print "Loading weather..."
-	# weather = retrieve_weather.load_weather("data/whistory2013-14.csv")
-	weather = []
+	weather = retrieve_weather.load_weather("data/whistory2013-14.csv")
 
 	simulator = Simulator(trips, stations, weather)
 
 	testAlg = test_alg.TestAlg()
 
-	simulator.run(testAlg, "data.xml", 3)
+	simulator.run(testAlg, "data.xml", 60)#12*60)#3)
 
 	
 

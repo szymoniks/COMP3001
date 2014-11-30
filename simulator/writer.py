@@ -15,17 +15,17 @@ class Writer:
 		self.root = ET.Element('date')
 		self.root.attrib["time"] = str(time_stamp)
 
-	def add_station_update(self, time_stamp, station):
+	def add_station_update(self, station):
 		# print "STATION"
-		station_update = self._create_record(time_stamp)
+		station_update = self._create_record()
 
 		station_update.attrib["type"] = "station"
 		
 		station.to_xml(station_update)
 
-	def add_weather_update(self, time_stamp, weather):
-		print "WEATHER"
-		weather_update = self._create_record(time_stamp)
+	def add_weather_update(self, weather):
+		# print "WEATHER"
+		weather_update = self._create_record()
 
 		weather_update.attrib["type"] = "weather"
 
@@ -42,7 +42,7 @@ class Writer:
 		self.output.write("</data-set>")
 		self.output.close()
 
-	def _create_record(self, time_stamp):
+	def _create_record(self):
 		record = ET.SubElement(self.root, "record")
 		record.attrib["id"] = str(self.record_id)
 
