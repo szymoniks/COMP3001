@@ -5,16 +5,16 @@ import retrieve_weather
 # import os
 # import sys
 from simulator import Simulator
-
+from basic import BasicAlg
+from rush import RushAlg
 # path = inspect.getfile(inspect.currentframe())
 # str_path = os.path.dirname(os.path.abspath(path))
-# print "SYSTEM PATH:", str_path
+# print0 "SYSTEM PATH:", str_path
 # str_path = str_path + '/algorithms/'
 # sys.path.append(str_path)
 # print "SYSTEM PATH:", str_path
 # import test
 
-import test_alg
 
 def main():
 	trips = []
@@ -27,9 +27,13 @@ def main():
 
 	simulator = Simulator(trips, stations, weather)
 
-	testAlg = test_alg.TestAlg()
+	# basicalg = BasicAlg(100) #an initial pool of 100 bikes available not in docks
 
-	simulator.run(testAlg, "data.xml", 60)#12*60)#3)
+	rushalg = RushAlg(100)
+
+	# simulator.run(basicalg, "data.xml", 60)#12*60)#3)
+
+	simulator.run(rushalg, "data.xml", 60)#12*60)#3)
 
 	
 
