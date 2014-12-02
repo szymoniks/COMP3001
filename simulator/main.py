@@ -16,6 +16,8 @@ from simulator import Simulator
 
 import test_alg
 
+import basic
+
 def main():
 	trips = []
 	print "Loading trips..."
@@ -27,9 +29,10 @@ def main():
 
 	simulator = Simulator(trips, stations, weather)
 
-	testAlg = test_alg.TestAlg()
+	# testAlg = test_alg.TestAlg()
+	y = basic.BasicAlg(10000)
 
-	simulator.run(testAlg, "data.xml", 60)#12*60)#3)
+	simulator.run(basicAlg, "data.xml", 60)#12*60)#3)
 
 	
 
