@@ -30,6 +30,7 @@
   //globals
   var frameDelay = 1000;
   var count = 0;
+  var simcount = 0;
   var hour = 0;
   var date = null;
   var start = false;
@@ -37,6 +38,7 @@
   var weatherRecords = [];
   var netdata = [];
   var tripdata = [];
+  var simdata = null;
   var map = null;
   var circles = [];
   var ctx = null;
@@ -44,6 +46,7 @@
   var netnode = [];
   var tripnode = [];
   var routedump = [];
+  var simulating = false;
 
   function getxmllist(path){
     xmlhttp = new XMLHttpRequest();
@@ -51,6 +54,18 @@
     xmlhttp.send();
     xmllist = xmlhttp.responseXML;
     return xmllist.getElementsByTagName("name");
+  }
+
+  function getsimulationdata(){
+    xmlhttp = new XMLHttpRequest();
+    console.log("getting simulation data");
+    xmlhttp.open("GET", "simulation/data.xml", false);
+    xmlhttp.send();
+    xmllist = xmlhttp.responseXML;
+    simdata = xmllist.getElementsByTagName("date");
+    console.log("got sim data");
+    NProgress.done();
+
   }
 
   function extractJourneyData(){
@@ -71,7 +86,7 @@
       //document.getElementById("loadbar").progress = x/39;
     }
 
-    NProgress.done();  
+    
     
   }
 
@@ -116,13 +131,13 @@
 
   function getDayLabels(){
     var list = [];
-    if(count > 7){
-      for(i=(count-7); i<=count; i++){
+    if(count > 12){
+      for(i=(count-12); i<=count+12; i++){
         list = list.concat(netnode[i].attributes[0].value);
       }
     }
     else{
-      for(i=(count+7); i>=count; i--){
+      for(i=(count+24); i>=count; i--){
         list = list.concat(netnode[i].attributes[0].value);
       }
     }
@@ -130,10 +145,66 @@
     
   }
 
+  function getsimgraph(station){
+    var list = [];
+    var data = [];
+    if(simcount > 12){
+      for(i=(simcount-12); i<=simcount+12; i++){
+        list = list.concat(simdata[i].attributes[0].value);
+        var datalist = simdata[i].getElementsByTagName('record');
+        for(x=0; x<datalist.length; x++){
+          if(datalist[x].attributes[1].value == "station"){
+            var id = parseInt(datalist[x].getElementsByTagName('id')[0].childNodes[0].nodeValue);
+            if(id == station){
+              var bikes = parseInt(datalist[x].getElementsByTagName('bikes')[0].childNodes[0].nodeValue);
+              if(bikes == null){
+                bikes = 0;
+              }
+              data = data.concat(bikes);
+            }
+          }
+          if(x == datalist.length-1){
+            if(data.length < list.length){
+              data = data.concat(0);
+            }
+          }
+        }
+      }
+    }
+    else{
+      for(i=(simcount+24); i>=simcount; i--){
+        list = list.concat(simdata[i].attributes[0].value);
+        var datalist = simdata[i].getElementsByTagName('record');
+        for(x=0; x<datalist.length; x++){
+          if(datalist[x].attributes[1].value == "station"){
+            var id = parseInt(datalist[x].getElementsByTagName('id')[0].childNodes[0].nodeValue);
+            if(id == station){
+              var bikes = parseInt(datalist[x].getElementsByTagName('bikes')[0].childNodes[0].nodeValue);
+              if(bikes == null){
+                bikes = 0;
+              }
+              data = data.concat(bikes);
+            }
+          }
+          if(x == datalist.length-1){
+            if(data.length < list.length){
+              data = data.concat(0);
+            }
+          }
+        }
+      }
+    }
+    console.log(list);
+    console.log(data);
+    return [list, data];
+  }
+
+
+
   function getGraphData(station){
     var list = [];
-    if(count > 7){
-      for(i=(count-7); i<=count; i++){
+    if(count > 12){
+      for(i=(count-12); i<=count+12; i++){
         var stationlist = netnode[i].getElementsByTagName('stationId');
         for(x=0; x<stationlist.length; x++){
           var id = parseInt(stationlist[x].attributes[0].value);
@@ -144,7 +215,7 @@
       }
     }
     else{
-      for(i=(count+7); i>=count; i--){
+      for(i=(count+24); i>=count; i--){
         var stationlist = netnode[i].getElementsByTagName('stationId');
         for(x=0; x<stationlist.length; x++){
           var id = parseInt(stationlist[x].attributes[0].value);
@@ -178,42 +249,72 @@
   circles[i] = new google.maps.Circle(stationOptions);
 
   google.maps.event.addListener(circles[i],"click",function(){
-    document.getElementById('charttitle').innerHTML = name + "<br/>" + datestring;
-    document.getElementById('cdiv').style.zIndex = "10";
-    var range = getDayLabels();
-    var gdata = getGraphData(i);
-    var dataset = {
-      labels: range,
-      datasets: [
-        {
-          label: "Testicles",
-          fillColor: "rgba(255,0,0,0.2)",
-          strokeColor: "rgba(220,220,220,1)",
-          pointColor: "rgba(220,220,220,1)",
-          pointStrokeColor: "#fff",
-          pointHighlightFill: "#fff",
-          pointHighlightStroke: "rgba(220,220,220,1)",
-          data: gdata
-        },
-        {
-          label: "Penis",
-          fillColor: "rgba(0,0,255,0.2)",
-          strokeColor: "rgba(220,220,220,1)",
-          pointColor: "rgba(220,220,220,0)",
-          pointStrokeColor: "rgba(220,220,220,0)",
-          pointHighlightFill: "rgba(220,220,220,0)",
-          pointHighlightStroke: "rgba(220,220,220,0)",
-          data: [0,0,0,0,0,0,0,0,0]
-        }
+    if(!simulating){
+      document.getElementById('charttitle').innerHTML = name + "<br/>" + datestring;
+      document.getElementById('cdiv').style.zIndex = "10";
+      var range = getDayLabels();
+      var gdata = getGraphData(i);
+      var dataset = {
+        labels: range,
+        datasets: [
+          {
+            label: "Testicles",
+            fillColor: "rgba(255,0,0,0.2)",
+            strokeColor: "rgba(220,220,220,1)",
+            pointColor: "rgba(220,220,220,1)",
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: "rgba(220,220,220,1)",
+            data: gdata
+          },
+          {
+            label: "Penis",
+            fillColor: "rgba(0,0,255,0.2)",
+            strokeColor: "rgba(220,220,220,1)",
+            pointColor: "rgba(220,220,220,0)",
+            pointStrokeColor: "rgba(220,220,220,0)",
+            pointHighlightFill: "rgba(220,220,220,0)",
+            pointHighlightStroke: "rgba(220,220,220,0)",
+            data: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+          }
 
 
-      ]
-    };
+        ]
+      };
 
-    var linechart = new Chart(ctx).Line(dataset, {
-      scaleGridLineColor: "rgba(255,255,255,0.5)"
+      var linechart = new Chart(ctx).Line(dataset, {
+        scaleGridLineColor: "rgba(255,255,255,0.5)"
+      });
+    }else if(simulating){
+      document.getElementById('charttitle').innerHTML = name + "<br/>" + document.getElementById('date').innerHTML;
+      document.getElementById('cdiv').style.zIndex = "10";
+      var simgraph = getsimgraph(i);
+      var range = simgraph[0];
+      var gdata = simgraph[1];
+      var dataset = {
+        labels: range,
+        datasets: [
+          {
+            label: "Testicles",
+            fillColor: "rgba(255,0,0,0.2)",
+            strokeColor: "rgba(220,220,220,1)",
+            pointColor: "rgba(220,220,220,1)",
+            pointStrokeColor: "#fff",
+            pointHighlightFill: "#fff",
+            pointHighlightStroke: "rgba(220,220,220,1)",
+            data: gdata
+          }
+
+
+        ]
+      };
+
+      var linechart = new Chart(ctx).Line(dataset, {
+        scaleGridLineColor: "rgba(255,255,255,0.5)"
+      });
+    }
     });
-  });
+  
   }
 
 
@@ -276,6 +377,39 @@
         setTimeout(updateWeather, frameDelay);
     }
 
+  }
+
+  function updatesim(){
+    var gotweather = 0;
+    if(simcount < simdata.length){
+      records = simdata[simcount].getElementsByTagName('record');
+      document.getElementById('date').innerHTML = simdata[simcount].attributes[0].value;
+      if(records[0].attributes[1].value == "weather"){
+        gotweather = 1;
+        document.getElementById('temp').innerHTML = records[0].getElementsByTagName('mean_tempc')[0].childNodes[0].nodeValue + "d.Celcius";
+        document.getElementById('wind').innerHTML = "";
+        try{
+          document.getElementById('weather').innerHTML = records[0].getElementsByTagName('events')[0].childNodes[0].nodeValue;
+        }catch(err){
+          //console.log(err);
+        }
+      }
+      for(i=gotweather; i<records.length; i++){
+        var id = parseInt(records[i].getElementsByTagName('id')[0].childNodes[0].nodeValue);
+        var radius = parseInt(records[i].getElementsByTagName('bikes')[0].childNodes[0].nodeValue);
+        try{
+          circles[id].setRadius(radius*5);
+        }catch(err){
+          //console.log(err);
+        }
+      }
+      document.getElementById('slider').value = simcount;
+      simcount++;
+
+      if(start){
+        setTimeout(updatesim, frameDelay);
+      }
+    }
   }
 
   function updateHourly(tpnode, hourlist){
@@ -355,9 +489,15 @@
     
     //what happens when user presses play
     document.getElementById('play').onclick = function(){   
+      document.getElementById('slider').max = weatherRecords.length;
+      document.getElementById('slider').value = count;
+      simulating = false;
       if(!start){ 
         for(x=0; x<routedump.length; x++){
         routedump[x].setMap(null);
+        }
+        for(i=0; i<circles.length; i++){
+          circles[i].setRadius(0);
         } 
         start = true;
         document.getElementById('cdiv').style.zIndex = "-10";
@@ -398,6 +538,33 @@
       }
     }
 
+    document.getElementById('simulation').onclick = function(){
+      
+      simulating = true;
+      if(!start){
+        for(x=0; x<routedump.length; x++){
+        routedump[x].setMap(null);
+        } 
+        for(i=0; i<circles.length; i++){
+          circles[i].setRadius(0);
+          circles[i].setOptions({fillColor : "#000000"});
+        }
+        start = true;
+        document.getElementById('simulation').innerHTML = "Stop";
+        document.getElementById('play').disabled = true;
+        document.getElementById('hourly').disabled = true;
+        document.getElementById('slider').max = simdata.length;
+        document.getElementById('slider').value = simcount;
+        updatesim();
+      }else if(start){
+        start = false;
+        
+        document.getElementById('simulation').innerHTML = "Simulation";
+        document.getElementById('play').disabled = false;
+        document.getElementById('hourly').disabled = true;
+      }
+    }
+
     //what happens when user selects the speed at which he wants the histry to play by
     document.getElementById('speed').onchange = function(){
       //get the value
@@ -411,9 +578,16 @@
     document.getElementById('slider').max = weatherRecords.length;
     //allow control of playback by moving slider
     document.getElementById('slider').onchange = function(){
-      count = document.getElementById('slider').value
-      if(!start)
-        updateWeather();
+      if(!simulating)
+        count = document.getElementById('slider').value;
+      if(simulating)
+        simcount = document.getElementById('slider').value;
+      if(!start){
+        if(!simulating)
+          updateWeather();
+        if(simulating)
+          updatesim();
+      }
     }
 
    
@@ -455,11 +629,13 @@
       var nbBikes = stations[i].getElementsByTagName("nbBikes")[0].firstChild.data;
       var name = stations[i].getElementsByTagName("name")[0].firstChild.data;    
       createCircle(latLng,nbBikes,name,map,i);
-      console.log(stations[i].getElementsByTagName("id")[0].firstChild.data);
+      //console.log(stations[i].getElementsByTagName("id")[0].firstChild.data);
     }
     extractJourneyData();
     document.getElementById('loader').innerHTML = "Loading trip data";
     extractTripData();
+    document.getElementById('loader').innerHTML = "Getting Sim Data";
+    getsimulationdata();
 
     for(i=0; i < weatherRecords.length; i++){
       date = weatherRecords[i].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
@@ -496,7 +672,7 @@
   <p id = "wind" style = "text-align:center; color:white; float:left; padding-left: 10px; ">60knots</p>
   <p id = "weather" style = "text-align:center; color:white; float:left; padding-left: 10px; ">Sunny</p>
 
-  <div id="loader" style = "width: 100%; height: 100%; position: absolute; top: 200px; left: 120px; z-index:10; color:white; font-size: 30px;">Loading</div>
+  <div id="loader" style = "text-align:center; width:100%; position: absolute; top: 200px; z-index:10; color:white; font-size: 30px; background-color:rgba(0,0,0,0.7);">Loading</br>Red = excess bikes</br>Blue = lack of bikes</br>Black = simulation</br>Black-arrows = bike movement</div>
 
   <div id="cdiv" style = "position: absolute; top: 350px; left: 80px; z-index:-10; background-color:rgba(0,0,0,0.95); border-radius:5px;">
     <p id = "charttitle" style = "color:white;">Graph</p>
