@@ -55,9 +55,9 @@ class RushAlg(Algorithm):
 
         #TODO: change all the times (currently in minutes) into datetime objects with hour and minute values
 
-        if self.count < 15:
-            self.count += 1
-            return
+        # if self.count < 15:
+        #     self.count += 1
+        #     return
         for station in simulator.get_all_stations():
             percentage = int((float(station.bikes) / float(station.number_of_docks)) * 100)
             if station.id in busy_stations:

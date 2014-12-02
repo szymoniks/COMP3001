@@ -32,9 +32,10 @@ def main():
 	# testAlg = test_alg.TestAlg()
 	# y = basic.BasicAlg(10000)
 
-	# simulator.run(basicAlg, "data.xml", 60)#12*60)#3)
 
 	# basicalg = BasicAlg(100) #an initial pool of 100 bikes available not in docks
+
+	# simulator.run(basicalg, "data.xml", 60)#12*60)#3)
 
 	rushalg = RushAlg(100)
 
