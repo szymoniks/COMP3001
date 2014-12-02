@@ -21,6 +21,8 @@
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=weather"></script>
   <script src="js/jquery.js"></script>
   <script src="chart/Chart.js"></script>
+  <script src='nprogress.js'></script>
+  <link rel='stylesheet' href='nprogress.css'/>
   <script src="http://gmaps-utility-library.googlecode.com/svn/trunk/markermanager/release/src/markermanager.js"></script>
 
 
@@ -28,27 +30,32 @@
   //globals
   var frameDelay = 1000;
   var count = 0;
+  var hour = 0;
+  var date = null;
   var start = false;
   var stations = [];
   var weatherRecords = [];
   var netdata = [];
-  var journeydata = [];
+  var tripdata = [];
   var map = null;
   var circles = [];
   var ctx = null;
   var datestring = "Today";
   var netnode = [];
+  var tripnode = [];
+  var routedump = [];
 
-  function getxmllist(){
+  function getxmllist(path){
     xmlhttp = new XMLHttpRequest();
-    xmlhttp.open("GET", "journeydata/xmllist.xml", false);
+    xmlhttp.open("GET", path + "xmllist.xml", false);
     xmlhttp.send();
     xmllist = xmlhttp.responseXML;
     return xmllist.getElementsByTagName("name");
   }
 
   function extractJourneyData(){
-    var namelist = getxmllist();
+    
+    var namelist = getxmllist("journeydata/");
     //document.getElementById("loadbar").max = 39;
     for(x=0; x<namelist.length; x++){
       var filename = namelist[x].childNodes[0].nodeValue;
@@ -59,11 +66,27 @@
       xmlhttp.send();
       xmldata = xmlhttp.responseXML;
       netdata[x] = xmldata.getElementsByTagName("date");
+      NProgress.inc();
       //console.log(netdata[x].item(0).attributes[0].value);
       //document.getElementById("loadbar").progress = x/39;
     }
+
+    NProgress.done();  
     
-    
+  }
+
+  function extractTripData(){
+    var namelist = getxmllist("tripdata/");
+    for(x=0; x<namelist.length; x++){
+      var filename = namelist[x].childNodes[0].nodeValue;
+      var fullname = "tripdata/".concat(filename);
+      xmlhttp = new XMLHttpRequest();
+      xmlhttp.open("GET", fullname, false);
+      console.log(fullname);
+      xmlhttp.send();
+      xmldata = xmlhttp.responseXML;
+      tripdata[x] = xmldata.getElementsByTagName("date");
+    }
   }
 
   function getNetDataNode(attr, type){
@@ -77,6 +100,17 @@
       }
     }
 
+    return node;
+  }
+
+  function getTripDataNode(date){
+    var node = null;
+    for(x=0; x<tripdata.length; x++){
+      for(y=0; y<tripdata[x].length; y++){
+        if(tripdata[x].item(y).attributes[0].value == date)
+          node = tripdata[x][y];
+      }
+    }
     return node;
   }
 
@@ -217,7 +251,7 @@
   function updateWeather(){
     //loop through the length of the list of weather records
     if(count < weatherRecords.length){
-      var date = weatherRecords[count].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
+      date = weatherRecords[count].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
       var d = new Date(date);
       datestring = d.toDateString();
 
@@ -244,9 +278,66 @@
 
   }
 
+  function updateHourly(tpnode, hourlist){
+    if(hour<24){
+      console.log(hour);
+      document.getElementById('date').innerHTML = hourlist[hour].attributes[0].value;
+      for(i=0; i<circles.length; i++){
+          circles[i].setRadius(0);
+      }
+      for(x=0; x<routedump.length; x++){
+        routedump[x].setMap(null);
+      }
+      triplist = hourlist[hour].getElementsByTagName('trip');
+      for(i=0; i<triplist.length; i++){
+        endpoint = circles[parseInt(triplist[i].attributes[0].value)];
+        stpoint = circles[parseInt(triplist[i].attributes[1].value)];
+        try{
+        endpoint.setRadius(25); stpoint.setRadius(50);
+        routedump = routedump.concat(drawLines(stpoint, endpoint));
+        }catch(err){
+          console.log(err);
+        }
+      }
+      hour++;
+
+      if(start){
+        setTimeout(function(){
+          updateHourly(tpnode, hourlist);
+        }, frameDelay + 2000);
+      }
+    }
+  }
+
+  function drawLines(start, end){
+    var arrow = {
+      path: google.maps.SymbolPath.FORWARD_CLOSED_ARROW
+    };
+
+    var coordinates = [
+      start.getCenter(),
+      end.getCenter()
+      ];
+    var route = new google.maps.Polyline({
+      path: coordinates,
+      geodesic: true,
+      strokeColor: '#000000',
+      strokeOpacity: 0.6,
+      strokeWeight: 1,
+      icons: [{
+        icon: arrow,
+        offset: '100%'
+      }]
+    });
+
+    route.setMap(map);
+    return route;
+  }
+
 
   function initialize() {
 
+    NProgress.start();
     xmlUrl = "http://www.tfl.gov.uk/tfl/syndication/feeds/cycle-hire/livecyclehireupdates.xml";
  
     var request = new XMLHttpRequest();
@@ -264,20 +355,46 @@
     
     //what happens when user presses play
     document.getElementById('play').onclick = function(){   
-      if(!start){  
+      if(!start){ 
+        for(x=0; x<routedump.length; x++){
+        routedump[x].setMap(null);
+        } 
         start = true;
         document.getElementById('cdiv').style.zIndex = "-10";
         //start playing through weather histry
         updateWeather();
         //change button to pause button
         document.getElementById('play').innerHTML = "Pause";
+        document.getElementById('hourly').disabled = true;
+        document.getElementById('simulation').disabled = true;
       }
       //if already playing
       else if(start){
         //change state to not playing
         start = false;
         //change button to play button
-        document.getElementById('play').innerHTML = "Play";
+        document.getElementById('play').innerHTML = "Daily";
+        document.getElementById('hourly').disabled = false;
+        document.getElementById('simulation').disabled = false;
+      }
+    }
+
+    document.getElementById('hourly').onclick = function(){
+      if(!start){
+        start = true;
+        hour = 0;
+        document.getElementById('cdiv').style.zIndex = "-10";
+        var tpnode = getTripDataNode(date);
+        var hourlist = tpnode.getElementsByTagName('time');
+        updateHourly(tpnode, hourlist);
+        document.getElementById('hourly').innerHTML = "Pause";
+        document.getElementById('play').disabled = true;
+        document.getElementById('simulation').disabled = true;
+      }else if(start){
+        start = false;
+        document.getElementById('hourly').innerHTML = "Hourly";
+        document.getElementById('play').disabled = false;
+        document.getElementById('simulation').disabled = false;
       }
     }
 
@@ -341,10 +458,15 @@
       console.log(stations[i].getElementsByTagName("id")[0].firstChild.data);
     }
     extractJourneyData();
+    document.getElementById('loader').innerHTML = "Loading trip data";
+    extractTripData();
+
     for(i=0; i < weatherRecords.length; i++){
-      var date = weatherRecords[i].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
+      date = weatherRecords[i].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
       netnode[i] = getNetDataNode(date, "date"); 
     }
+
+
     document.getElementById("loader").style.zIndex="-1";
   }
 
@@ -358,8 +480,10 @@
 <body>
   <div id="map-canvas"></div>
   <input id = "slider" type = "range" style = "position:relative; width:100%;"></input>
-  <button type = "button" id = "play" style = "position:absolute; left:44%; border-radius:10px; font-size:30px; float:left; width:200px;" >Play</button>
-  <form action = "" id = "playspeed" style = "position:absolute; left:58%; border-radius:10px; font-size:30px;">
+  <button type = "button" id = "play" style = "position:absolute; left:34%; border-radius:10px; font-size:30px; float:left; width:200px;" >Daily</button>
+  <button type = "button" id = "hourly" style = "position:absolute; left:54%; border-radius:10px; font-size:30px; float:left; width:200px;" >Hourly</button>
+  <button type = "button" id = "simulation" style = "position:absolute; left:67%; border-radius:10px; font-size:30px; float:left; width:200px;" >Simulation</button>
+  <form action = "" id = "playspeed" style = "position:absolute; left:48%; border-radius:10px; font-size:30px;">
     <select id = "speed" style = "border-radius:10px; font-size:30px;">
       <option value= "1.0" selected>1.0x</option>
       <option value= "1.5">1.5x</option>
@@ -372,7 +496,7 @@
   <p id = "wind" style = "text-align:center; color:white; float:left; padding-left: 10px; ">60knots</p>
   <p id = "weather" style = "text-align:center; color:white; float:left; padding-left: 10px; ">Sunny</p>
 
-  <div id="loader" style = "width: 100%; height: 100%; position: absolute; top: 200px; left: 120px; z-index:10; color:white; font-size: 50px;">Loading...</div>
+  <div id="loader" style = "width: 100%; height: 100%; position: absolute; top: 200px; left: 120px; z-index:10; color:white; font-size: 30px;">Loading</div>
 
   <div id="cdiv" style = "position: absolute; top: 350px; left: 80px; z-index:-10; background-color:rgba(0,0,0,0.95); border-radius:5px;">
     <p id = "charttitle" style = "color:white;">Graph</p>
