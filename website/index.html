@@ -19,7 +19,8 @@
   }
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=weather"></script>
-  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="js/jquery.js"></script>
+  <script src="chart/Chart.js"></script>
   <script src="http://gmaps-utility-library.googlecode.com/svn/trunk/markermanager/release/src/markermanager.js"></script>
 
 
@@ -34,6 +35,9 @@
   var journeydata = [];
   var map = null;
   var circles = [];
+  var ctx = null;
+  var datestring = "Today";
+  var netnode = [];
 
   function getxmllist(){
     xmlhttp = new XMLHttpRequest();
@@ -58,7 +62,7 @@
       //console.log(netdata[x].item(0).attributes[0].value);
       //document.getElementById("loadbar").progress = x/39;
     }
-    document.getElementById("loader").style.zIndex="-1";
+    
     
   }
 
@@ -74,6 +78,49 @@
     }
 
     return node;
+  }
+
+  function getDayLabels(){
+    var list = [];
+    if(count > 7){
+      for(i=(count-7); i<=count; i++){
+        list = list.concat(netnode[i].attributes[0].value);
+      }
+    }
+    else{
+      for(i=(count+7); i>=count; i--){
+        list = list.concat(netnode[i].attributes[0].value);
+      }
+    }
+    return list;
+    
+  }
+
+  function getGraphData(station){
+    var list = [];
+    if(count > 7){
+      for(i=(count-7); i<=count; i++){
+        var stationlist = netnode[i].getElementsByTagName('stationId');
+        for(x=0; x<stationlist.length; x++){
+          var id = parseInt(stationlist[x].attributes[0].value);
+          if(id == station){
+            list = list.concat(parseInt(stationlist[x].getElementsByTagName("net")[0].firstChild.data));
+          }
+        }
+      }
+    }
+    else{
+      for(i=(count+7); i>=count; i--){
+        var stationlist = netnode[i].getElementsByTagName('stationId');
+        for(x=0; x<stationlist.length; x++){
+          var id = parseInt(stationlist[x].attributes[0].value);
+          if(id == station){
+            list = list.concat(parseInt(stationlist[x].getElementsByTagName("net")[0].firstChild.data));
+          }
+        }
+      }
+    }
+    return list;
   }
 
 
@@ -97,8 +144,41 @@
   circles[i] = new google.maps.Circle(stationOptions);
 
   google.maps.event.addListener(circles[i],"click",function(){
-    infowindow.setPosition(latLng);
-    infowindow.open(map);
+    document.getElementById('charttitle').innerHTML = name + "<br/>" + datestring;
+    document.getElementById('cdiv').style.zIndex = "10";
+    var range = getDayLabels();
+    var gdata = getGraphData(i);
+    var dataset = {
+      labels: range,
+      datasets: [
+        {
+          label: "Testicles",
+          fillColor: "rgba(255,0,0,0.2)",
+          strokeColor: "rgba(220,220,220,1)",
+          pointColor: "rgba(220,220,220,1)",
+          pointStrokeColor: "#fff",
+          pointHighlightFill: "#fff",
+          pointHighlightStroke: "rgba(220,220,220,1)",
+          data: gdata
+        },
+        {
+          label: "Penis",
+          fillColor: "rgba(0,0,255,0.2)",
+          strokeColor: "rgba(220,220,220,1)",
+          pointColor: "rgba(220,220,220,0)",
+          pointStrokeColor: "rgba(220,220,220,0)",
+          pointHighlightFill: "rgba(220,220,220,0)",
+          pointHighlightStroke: "rgba(220,220,220,0)",
+          data: [0,0,0,0,0,0,0,0,0]
+        }
+
+
+      ]
+    };
+
+    var linechart = new Chart(ctx).Line(dataset, {
+      scaleGridLineColor: "rgba(255,255,255,0.5)"
+    });
   });
   }
 
@@ -139,7 +219,7 @@
     if(count < weatherRecords.length){
       var date = weatherRecords[count].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
       var d = new Date(date);
-      var datestring = d.toDateString();
+      datestring = d.toDateString();
 
       //for each iteration, change the words displayed bottom of screen to that of the record
       document.getElementById("date").innerHTML = datestring;
@@ -149,9 +229,8 @@
         document.getElementById("weather").innerHTML = weatherRecords[count].getElementsByTagName("events")[0].childNodes[0].nodeValue;
       else document.getElementById("weather").innerHTML = "Clear";
       document.getElementById('wind').innerHTML = weatherRecords[count].getElementsByTagName("wind")[0].childNodes[0].nodeValue + " knots";
-
-      var netnode = getNetDataNode(date, "date");
-      drawNetCircles(netnode);
+      
+      drawNetCircles(netnode[count]);
       //console.log(netnode);
       //move the slider
       document.getElementById('slider').value = count;
@@ -187,6 +266,7 @@
     document.getElementById('play').onclick = function(){   
       if(!start){  
         start = true;
+        document.getElementById('cdiv').style.zIndex = "-10";
         //start playing through weather histry
         updateWeather();
         //change button to pause button
@@ -219,6 +299,12 @@
         updateWeather();
     }
 
+   
+
+    Chart.defaults.global.scaleLineColor = "rgba(255,255,255, 0.5)";
+    ctx = document.getElementById('chart').getContext("2d");
+
+    
     
 
   }
@@ -255,6 +341,11 @@
       console.log(stations[i].getElementsByTagName("id")[0].firstChild.data);
     }
     extractJourneyData();
+    for(i=0; i < weatherRecords.length; i++){
+      var date = weatherRecords[i].getElementsByTagName("bst")[0].childNodes[0].nodeValue;
+      netnode[i] = getNetDataNode(date, "date"); 
+    }
+    document.getElementById("loader").style.zIndex="-1";
   }
 
   google.maps.event.addDomListener(window, 'load', initialize);
@@ -281,7 +372,12 @@
   <p id = "wind" style = "text-align:center; color:white; float:left; padding-left: 10px; ">60knots</p>
   <p id = "weather" style = "text-align:center; color:white; float:left; padding-left: 10px; ">Sunny</p>
 
-  <div id="loader" style = "width: 100%; height: 100%; position: absolute; top: 200px; left: 120px; z-index:10; color:white; font-size: 50px;">Loading...(it takes a while)</div>
+  <div id="loader" style = "width: 100%; height: 100%; position: absolute; top: 200px; left: 120px; z-index:10; color:white; font-size: 50px;">Loading...</div>
+
+  <div id="cdiv" style = "position: absolute; top: 350px; left: 80px; z-index:-10; background-color:rgba(0,0,0,0.95); border-radius:5px;">
+    <p id = "charttitle" style = "color:white;">Graph</p>
+    <canvas id="chart" width="400" height="200" padding="10px"></canvas>
+  </div>
 
 </body>
 </html>
