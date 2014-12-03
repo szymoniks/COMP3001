@@ -5,18 +5,32 @@
   <title>Weather layer</title>
   <style>
   html, body, #map-canvas {
-    height: 95%;
-    margin: 2px;
-    padding: 2px;
-    background-color: black;
+    height: 100%;
+
+    background-color: white;
 
    
   }
 
-  #map-canvas {
-    border-radius: 15px;
-    border-style: outset;
+  #Button {
+      background: green;
+      display:block;
+      height:80px;
+      width:232px;
+      text-indent:-9999px;
+      padding-bottom: 20px;
   }
+  #Button:hover{
+  width: 232px;
+  height: 80px;
+  background-position: -232px 0;
+  }
+  #Button:active {
+  width: 232px;
+  height: 80px;
+  background-position: -464px 0;
+  }
+
   </style>
   <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=weather"></script>
   <script src="js/jquery.js"></script>
@@ -100,6 +114,7 @@
       console.log(fullname);
       xmlhttp.send();
       xmldata = xmlhttp.responseXML;
+      console.log(xmldata)
       tripdata[x] = xmldata.getElementsByTagName("date");
     }
   }
@@ -654,30 +669,44 @@
   </script>
 </head>
 <body>
-  <div id="map-canvas"></div>
-  <input id = "slider" type = "range" style = "position:relative; width:100%;"></input>
-  <button type = "button" id = "play" style = "position:absolute; left:34%; border-radius:10px; font-size:30px; float:left; width:200px;" >Daily</button>
-  <button type = "button" id = "hourly" style = "position:absolute; left:54%; border-radius:10px; font-size:30px; float:left; width:200px;" >Hourly</button>
-  <button type = "button" id = "simulation" style = "position:absolute; left:67%; border-radius:10px; font-size:30px; float:left; width:200px;" >Simulation</button>
-  <form action = "" id = "playspeed" style = "position:absolute; left:48%; border-radius:10px; font-size:30px;">
-    <select id = "speed" style = "border-radius:10px; font-size:30px;">
-      <option value= "1.0" selected>1.0x</option>
-      <option value= "1.5">1.5x</option>
-      <option value= "2.0">2.0x</option>
-      <option value= "4.0">4.0x</option>
-    </select>
-  </form>
-  <p id = "date" style = "text-align:center; color:white; float:left; padding-left: 100px; ">Today.</p>
-  <p id = "temp" style = "text-align:center; color:white; float:left; padding-left: 10px; ">16 degrees celcius</p>
-  <p id = "wind" style = "text-align:center; color:white; float:left; padding-left: 10px; ">60knots</p>
-  <p id = "weather" style = "text-align:center; color:white; float:left; padding-left: 10px; ">Sunny</p>
-
-  <div id="loader" style = "text-align:center; width:100%; position: absolute; top: 200px; z-index:10; color:white; font-size: 30px; background-color:rgba(0,0,0,0.7);">Loading</br>Red = excess bikes</br>Blue = lack of bikes</br>Black = simulation</br>Black-arrows = bike movement</div>
-
-  <div id="cdiv" style = "position: absolute; top: 350px; left: 80px; z-index:-10; background-color:rgba(0,0,0,0.95); border-radius:5px;">
-    <p id = "charttitle" style = "color:white;">Graph</p>
-    <canvas id="chart" width="400" height="200" padding="10px"></canvas>
+  <div id="pediogyOverall" style="width: 100%; height: 100%;background:black;" >
+    <div id="pediogyToolbar" style="float: left; display: inline-block; width: 25%; height: 100%; background: black;">
+        <p id = "date" style = "text-align:center; color:white; float:left; width:100%; ">Today.</p>
+        <p id = "temp" style = "text-align:center; color:white; float:left; width:100%; ">16 degrees celcius</p>
+        <p id = "wind" style = "text-align:center; color:white; float:left; width:100%; ">60knots</p>
+        <p id = "weather" style = "text-align:center; color:white; float:left; width:100%; ">Sunny</p>  
+    </div>
+    <div id="pediogyViewer" style="float: left;display: inline-block; width: 75%; height: 100%; background: white;">
+      <div id="blab" style="width: 100%; height: 80%; background: white; text-align: center;">
+          <div id="loader" style = "width:75%; position: absolute; top: 200px; margin-left: auto; margin-right: auto;z-index:10; color:white; font-size: 30px; background-color:rgba(0,0,0,0.7);">Loading</br>Red = excess bikes</br>Blue = lack of bikes</br>Black = simulation</br>Black-arrows = bike movement</div>
+          <div id="map-canvas"></div>
+      </div>
+      <div id="phpDebug" style="width: 100%; height: 20%; background: white;  margin-left: auto; margin-right: auto; float: left">
+        <input id = "slider" type = "range" style = "position:relative; width:100%;"></input>
+        <div id="buttonSpace" style="width: 100%; text-align: center; margin-bottom:20px;">
+          <button type = "button" id = "play"  >Daily</button>
+          <button type = "button" id = "hourly"  >Hourly</button>
+          <button type = "button" id = "simulation" >Simulation</button>
+          <form action = "" id = "playspeed" style = "padding-top:10px;">
+            <select id = "speed" style = "border-radius:10px; font-size:30px;">
+              <option value= "1.0" selected>1.0x</option>
+              <option value= "1.5">1.5x</option>
+              <option value= "2.0">2.0x</option>
+              <option value= "4.0">4.0x</option>
+            </select>
+          </form>
+        </div>
+        
+      </div>
+    </div>
   </div>
+
+  <div id="cdiv" style = "width:20%; position: absolute; top: 350px; left: 20px; z-index:-10; background-color:rgba(0,0,0,0.95); border-radius:5px;">
+    <p id = "charttitle" style = "color:white;">Graph</p>
+    <canvas id="chart" width="300" height="200" padding="10px"></canvas>
+  </div>
+  <p id = "footer" style = "text-align:center; color:white; ">Weather Simulation tools</p>
+
 
 </body>
 </html>
