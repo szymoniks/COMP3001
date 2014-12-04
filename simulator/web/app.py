@@ -13,25 +13,26 @@ class upload:
 
     def POST(self):
         code = web.input().get("algorithm", "")
-        write_algorithm(code)
+        time_step = web.input().get("timestep", 1)
+        write_algorithm(code, time_step)
         return "Cool bro"
 
 
-def write_algorithm(code):
+def write_algorithm(code, time_step):
     file = open("uploads/algorithm.py", "wb")
     file.write(code)
     file.close()
 
+    tokens = code.split()
+    className = tokens[tokens.index("class") + 1].strip(":")
+
     main_file = open("uploads/main.py", "w")
-    file_content = 'import ' + className + '''
+    file_content = 'from ' + className.lower() + ' import ' + className + '''
 import trip_util
 import load_station
 import retrieve_weather
 from simulator import Simulator
-from basic import BasicAlg
-from rush import RushAlg
 
-import basic
 
 def main():
     trips = []
@@ -43,12 +44,13 @@ def main():
     weather = retrieve_weather.load_weather("data/whistory2013-14.csv")
 
     simulator = Simulator(trips, stations, weather)
-    ''' + varName + ' = ' + className + '''()
+    algorithm = ''' + className + '''()
 
-    simulator.run(''' + varName + ', "data.xml", ' + interval + ''')
+    simulator.run(algorithm, "data.xml", ''' + str(time_step) + ''')
 
 if __name__ == "__main__":
-    main()'''
+    main()
+'''
 
     main_file.write(file_content)
     main_file.close()
