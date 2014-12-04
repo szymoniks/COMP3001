@@ -48,6 +48,7 @@ class Simulator:
         start_trip = None
         end_trip = None
         self.current_weather = None
+        self.total_cost = 0
 
         # I can do it, because those lists have at least one element
         try:
@@ -82,7 +83,7 @@ class Simulator:
 
             try:
                 # print "weather", self.current_weather.date, self.current_time.date()
-                
+
                 cur_weather = self.current_weather
                 weather_updated = False
 
@@ -115,6 +116,7 @@ class Simulator:
         print "Successful trips: %d" % len(self.successful_trips())
         print "Semi-failed trips: %d" % len(self.semisuccessful_trips())
         print "Failed trips: %d" % len(self.failed_trips())
+        print "Total cost:", self.total_cost
 
     def get_station(self, station_id):
         return self.stations_index[station_id]
@@ -130,12 +132,14 @@ class Simulator:
                 village.append(station)
         return village
 
-    def add_bikes(self, station_id, count):
+    def add_bikes(self, station_id, count, cost=0):
         self._updated_stations[station_id] = 1
+        self.total_cost += cost
         return self.get_station(station_id).add_bikes(count)
 
-    def remove_bikes(self, station_id, count):
+    def remove_bikes(self, station_id, count, cost=0):
         self._updated_stations[station_id] = 1
+        self.total_cost += cost
         return self.get_station(station_id).remove_bikes(count)
 
     def trips_starting_now(self):
