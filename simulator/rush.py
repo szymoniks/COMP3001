@@ -54,16 +54,14 @@ class RushAlg(Algorithm):
         #what if a station can be in a hub and a commute_dest, due to our village definition?
 
         #TODO: change all the times (currently in minutes) into datetime objects with hour and minute values
-
-        # if self.count < 15:
-        #     self.count += 1
-        #     return
+        flag = None
         for station in simulator.get_all_stations():
+            flag = False
             percentage = int((float(station.bikes) / float(station.number_of_docks)) * 100)
             if station.id in busy_stations:
                 if simulator.current_time.time() > self.morning_rush_start and simulator.current_time.time() < self.morning_rush_end:
                     
-                    for hub_station in hub_stations:
+                    if station.id in hub_stations:
                         original_bikes = station.bikes  
                         optimal_bikes = int(station.number_of_docks * 0.9) 
                         if percentage > 95:
@@ -75,7 +73,7 @@ class RushAlg(Algorithm):
                             bikes_available -= original_bikes - optimal_bikes
                             print "Adding " + str(optimal_bikes - original_bikes) + " from " + station.name +  "station has " + str(station.bikes) + " used to have " + str(original_bikes)
                     
-                    for dest_s in commute_dest_stations:
+                    elif station.id in commute_dest_stations:
                         original_bikes = station.bikes  
                         optimal_bikes = int(station.number_of_docks * 0.1) 
                         if percentage > 15:
@@ -86,10 +84,10 @@ class RushAlg(Algorithm):
                             station.add_bikes(optimal_bikes - station.bikes)
                             bikes_available -= original_bikes - optimal_bikes
                             print "Adding " + str(optimal_bikes - original_bikes) + " from " + station.name +  "station has " + str(station.bikes) + " used to have " + str(original_bikes)
-                
+                    flag = True
                 elif simulator.current_time.time() > self.evening_rush_start and simulator.current_time.time() < self.evening_rush_end:  
 
-                    for hub_station in hub_stations:
+                    if station.id in hub_stations:
                         original_bikes = station.bikes  
                         optimal_bikes = int(station.number_of_docks * 0.1) 
                         if percentage > 15:
@@ -101,7 +99,7 @@ class RushAlg(Algorithm):
                             bikes_available -= original_bikes - optimal_bikes
                             print "Adding " + str(optimal_bikes - original_bikes) + " from " + station.name +  "station has " + str(station.bikes) + " used to have " + str(original_bikes)
                 
-                    for dest_s in commute_dest_stations:
+                    elif station.id in commute_dest_stations:
                         original_bikes = station.bikes  
                         optimal_bikes = int(station.number_of_docks * 0.9) 
                         if percentage > 95:
@@ -112,9 +110,9 @@ class RushAlg(Algorithm):
                             station.add_bikes(optimal_bikes - station.bikes)
                             bikes_available -= original_bikes - optimal_bikes
                             print "Adding " + str(optimal_bikes - original_bikes) + " from " + station.name +  "station has " + str(station.bikes) + " used to have " + str(original_bikes)
-                    
+                    flag = True
 
-            else:
+            if flag == False:
                 # run the basic algorithm for other stations
                 optimal_bikes = int(station.number_of_docks / 1.8) #i.e. ~55% full
                 # too full
