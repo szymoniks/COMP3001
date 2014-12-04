@@ -117,6 +117,13 @@ class Simulator:
         print "Semi-failed trips: %d" % len(self.semisuccessful_trips())
         print "Failed trips: %d" % len(self.failed_trips())
         print "Total cost:", self.total_cost
+        self.__disp_stations()
+
+    def __disp_stations(self):
+        for station in self.stations:
+            print "Station {0}:".format(station.id)
+            print "Station FAILED TRIPS: {0}".format(station.failed)
+            print "STATION SEMI FAILED TRIPS: {0}".format(station.semi_failed)
 
     def get_station(self, station_id):
         return self.stations_index[station_id]
@@ -194,6 +201,9 @@ class Simulator:
                     for station in village:
                         if self.add_bikes(station.id, 1):
                             trip.status = TripStatus.SEMI_FAILED
+                            for s in self.stations:
+                                if s.id == trip.end_id:
+                                    s.semi_failed += 1
                             break
                     if trip.status != TripStatus.SEMI_FAILED:
                         trip.status = TripStatus.FAILED
@@ -213,6 +223,9 @@ class Simulator:
                 trip.status = TripStatus.ACTIVE
             else:
                 trip.status = TripStatus.FAILED
+                for station in self.stations:
+                    if station.id == trip.start_id:
+                        station.failed += 1
 
         else:
             self._raise_warning(

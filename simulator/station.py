@@ -11,6 +11,8 @@ class Station:
         self.longitude = lng
         self.bikes = 0
         self.number_of_docks = number_of_docks
+        self.failed = 0
+        self.semi_failed = 0
 
     def empty_spaces(self):
         return self.number_of_docks - self.bikes
