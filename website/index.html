@@ -6,10 +6,20 @@
   <style>
   html, body, #map-canvas {
     height: 100%;
-
     background-color: white;
+  }
 
-   
+  #fluid {
+    float: left;
+    width: 100%;
+    margin-right: -320px; /* The size of the fixed block. */
+  }
+  #inner-block {
+    margin-right: 320px; /* The size of the fixed block. */
+  }
+  #fixed-width {
+    float: left;
+    width: 320px; /* The size of the fixed block. */
   }
 
   #Button {
@@ -17,6 +27,7 @@
       display:block;
       height:80px;
       width:232px;
+      font-size:14px;
       text-indent:-9999px;
       padding-bottom: 20px;
   }
@@ -61,6 +72,15 @@
   var tripnode = [];
   var routedump = [];
   var simulating = false;
+  var checked = false;
+
+  function check() {
+    document.getElementById("checkBox").checked = true;
+  }
+
+  function uncheck() {
+    document.getElementById("checkBox").checked = false;
+  }
 
   function getxmllist(path){
     xmlhttp = new XMLHttpRequest();
@@ -443,7 +463,12 @@
         stpoint = circles[parseInt(triplist[i].attributes[1].value)];
         try{
         endpoint.setRadius(25); stpoint.setRadius(50);
-        routedump = routedump.concat(drawLines(stpoint, endpoint));
+        checked = document.getElementById("checkBox").checked;
+        if(checked)
+          routedump = routedump.concat(drawLines(stpoint, endpoint));
+        else{
+          routedump[x].setMap(null);
+        }
         }catch(err){
           console.log(err);
         }
@@ -501,7 +526,13 @@
     xmlhttp.send();
     xmlWeather = xmlhttp.responseXML;
     weatherRecords = xmlWeather.getElementsByTagName("record");
-    
+    document.getElementById('play').disabled = false;
+    document.getElementById('hourly').disabled = true;
+    document.getElementById('simulation').disabled = false;
+
+    document.getElementById('checkBox').style.display = 'none';
+
+
     //what happens when user presses play
     document.getElementById('play').onclick = function(){   
       document.getElementById('slider').max = weatherRecords.length;
@@ -522,6 +553,8 @@
         document.getElementById('play').innerHTML = "Pause";
         document.getElementById('hourly').disabled = true;
         document.getElementById('simulation').disabled = true;
+        document.getElementById('checkBox').style.display = 'none';
+
       }
       //if already playing
       else if(start){
@@ -531,10 +564,13 @@
         document.getElementById('play').innerHTML = "Daily";
         document.getElementById('hourly').disabled = false;
         document.getElementById('simulation').disabled = false;
+        document.getElementById('checkBox').style.display = 'none';
+
       }
     }
 
     document.getElementById('hourly').onclick = function(){
+
       if(!start){
         start = true;
         hour = 0;
@@ -545,8 +581,11 @@
         document.getElementById('hourly').innerHTML = "Pause";
         document.getElementById('play').disabled = true;
         document.getElementById('simulation').disabled = true;
+        document.getElementById('checkBox').style.display = 'inline';
+
       }else if(start){
         start = false;
+        document.getElementById('checkBox').style.display = 'none';
         document.getElementById('hourly').innerHTML = "Hourly";
         document.getElementById('play').disabled = false;
         document.getElementById('simulation').disabled = false;
@@ -554,7 +593,7 @@
     }
 
     document.getElementById('simulation').onclick = function(){
-      
+      document.getElementById('checkBox').style.display = 'none';
       simulating = true;
       if(!start){
         for(x=0; x<routedump.length; x++){
@@ -687,6 +726,9 @@
           <button type = "button" id = "play"  >Daily</button>
           <button type = "button" id = "hourly"  >Hourly</button>
           <button type = "button" id = "simulation" >Simulation</button>
+          <input type="checkbox" id = "checkBox" name="option1" value="DisplayLines" ><br>
+
+
           <form action = "" id = "playspeed" style = "padding-top:10px;">
             <select id = "speed" style = "border-radius:10px; font-size:30px;">
               <option value= "1.0" selected>1.0x</option>
